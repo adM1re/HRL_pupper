@@ -24,7 +24,7 @@ class HighPolicy:
 
     def __init__(self):
         self.nb_steps = 10000
-        self.episode_length = 1000
+        self.episode_length = 2000
         self.learning_rate = 0.02
         self.nb_directions = 16
         self.nb_best_directions = 4
@@ -38,7 +38,7 @@ class LowPolicy:
 
     def __init__(self):
         self.nb_steps = 10000
-        self.episode_length = 1000
+        self.episode_length = 2000
         self.learning_rate = 0.02
         self.nb_directions = 16
         self.nb_best_directions = 8
@@ -131,7 +131,7 @@ class Policy:
 
     def __init__(self, state_dim, action_dim):
         self.theta = np.zeros((action_dim, state_dim))
-        print("Starting policy theta=", self.theta)
+        # print("Starting policy theta=", self.theta)
 
     def evaluate(self, state, delta, direction, hp):
         if direction is None:
@@ -166,6 +166,58 @@ class Agent(object):
         self.nb_directions = 16
         self.nb_best_directions = 8
 
+    def deploy(self, direction=None, delta=None):
+        nb_inputs = self.env.observation_space.shape[0]
+        normalizer = Normalizer(nb_inputs)
+        state = self.env.reset()
+        done = False
+        num_plays = 0.
+        sum_rewards = 0
+        while not done and num_plays < self.low_policy.episode_length:
+            normalizer.observe(state)
+            state = normalizer.normalize(state)
+            action = self.policy.evaluate(state, delta, direction, self.low_policy)
+            state, reward, done, _ = self.env.step(action)
+            # reward = max(min(reward, 1), -1)
+            sum_rewards += reward
+            num_plays += 1
+        return sum_rewards
+
+    def train(self):
+        print("------------------TRAINING------------------------")
+        deltas = self.policy.sample_deltas(self.low_policy)
+        positive_rewards = [0] * self.nb_directions
+        negative_rewards = [0] * self.nb_directions
+        print("Deploying Rollouts")
+        for i in range(self.nb_directions):
+            positive_rewards[i] = self.deploy(direction="positive", delta=deltas[i])
+
+        for i in range(self.nb_directions):
+            negative_rewards[i] = self.deploy(direction="negative", delta=deltas[i])
+        all_rewards = np.array(positive_rewards + negative_rewards)
+        sigma_r = all_rewards.std()
+
+        # Sorting the rollouts by the max(r_pos, r_neg) and selecting the best directions
+        scores = {
+            k: max(r_pos, r_neg)
+            for k, (r_pos, r_neg) in enumerate(zip(positive_rewards, negative_rewards))
+        }
+        order = sorted(scores.keys(), key=lambda x: -scores[x])[:self.nb_best_directions]
+        rollouts = [(positive_rewards[k], negative_rewards[k], deltas[k]) for k in order]
+
+        # Updating our policy
+        self.policy.update(rollouts, sigma_r, self.low_policy)
+
+        # Printing the final reward of the policy after the update
+        reward_evaluation, num_plays = explore(env=self.env,
+                                               normalizer=self.normalizer,
+                                               policy=self.policy,
+                                               direction=None,
+                                               delta=None,
+                                               low_policy=self.low_policy)
+        # print('Step:', step, 'Reward:', reward_evaluation)
+        return reward_evaluation, num_plays
+
     def train_parallel(self, parent_pipes):
         deltas = self.policy.sample_deltas(self.low_policy)
         positive_rewards = [0] * self.nb_directions
@@ -174,25 +226,13 @@ class Agent(object):
         if parent_pipes:
             for i in range(self.nb_directions):
                 parent_pipe = parent_pipes[i]
-                parent_pipe.send([
-                    _EXPLORE,
-                    [
-                        self.normalizer, self.policy, self.low_policy, "positive", deltas[i]
-                    ]
-                ]
-                )
+                parent_pipe.send([_EXPLORE, [self.normalizer, self.policy, self.low_policy, "positive", deltas[i]]])
             for i in range(self.nb_directions):
                 positive_rewards[i] = parent_pipes[i].recv()[0]
 
             for i in range(self.nb_directions):
                 parent_pipe = parent_pipes[i]
-                parent_pipe.send([
-                    _EXPLORE,
-                    [
-                        self.normalizer, self.policy, self.low_policy, "negative", deltas[i]
-                    ]
-                ]
-                )
+                parent_pipe.send([_EXPLORE, [self.normalizer, self.policy, self.low_policy, "negative", deltas[i]]])
             for i in range(self.nb_directions):
                 negative_rewards[i] = parent_pipes[i].recv()[0]
 
@@ -223,6 +263,9 @@ class Agent(object):
         with open(filename, 'rb') as filehandle:
             self.policy.theta = pickle.load(filehandle)
 
+    def np_load(self, file_name):
+        self.policy.theta = np.load(file_name)
+
 
 def explore(env, normalizer, policy, direction, delta, low_policy):
     state = env.reset()
@@ -232,7 +275,7 @@ def explore(env, normalizer, policy, direction, delta, low_policy):
     while not done and num_plays < low_policy.episode_length:
         normalizer.observe(state)
         state = normalizer.normalize(state)
-        action = policy.evaluate(state, delta, direction)
+        action = policy.evaluate(state, delta, direction, low_policy)
         state, reward, done, _ = env.step(action)
         # reward = max(min(reward, 1), -1)
         sum_rewards += reward
@@ -243,7 +286,7 @@ def explore(env, normalizer, policy, direction, delta, low_policy):
 # Training the AI
 
 
-def train(env, policy, normalizer, hp, parentPipes, args):
+def train(env, policy, normalizer, hp, parent_pipes, args):
     for step in range(hp.nb_steps):
 
         # Initializing the perturbations deltas and the positive/negative rewards
@@ -251,18 +294,18 @@ def train(env, policy, normalizer, hp, parentPipes, args):
         positive_rewards = [0] * hp.nb_directions
         negative_rewards = [0] * hp.nb_directions
 
-        if parentPipes:
+        if parent_pipes:
             for k in range(hp.nb_directions):
-                parentPipe = parentPipes[k]
+                parentPipe = parent_pipes[k]
                 parentPipe.send([_EXPLORE, [normalizer, policy, hp, "positive", deltas[k]]])
             for k in range(hp.nb_directions):
-                positive_rewards[k] = parentPipes[k].recv()[0]
+                positive_rewards[k] = parent_pipes[k].recv()[0]
 
             for k in range(hp.nb_directions):
-                parentPipe = parentPipes[k]
+                parentPipe = parent_pipes[k]
                 parentPipe.send([_EXPLORE, [normalizer, policy, hp, "negative", deltas[k]]])
             for k in range(hp.nb_directions):
-                negative_rewards[k] = parentPipes[k].recv()[0]
+                negative_rewards[k] = parent_pipes[k].recv()[0]
 
         else:
             # Getting the positive rewards in the positive directions

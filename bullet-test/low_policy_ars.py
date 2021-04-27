@@ -10,8 +10,7 @@ import pybullet
 import multiprocessing as mp
 from multiprocessing import Pipe
 from pupper_gym_env import pupperGymEnv
-from ars_lib.ars import LowPolicy, HighPolicy, Normalizer, Policy, ExploreWorker, Agent
-import ars_lib.ars
+from ars_lib.ars import *
 # Messages for Pipe
 _RESET = 1
 _CLOSE = 2
@@ -38,8 +37,12 @@ def main():
     seed = 0
     print("Seed:{}".format(seed))
     max_time_steps = 4e6
-    eval_freq = 1
-    save_model = True
+    eval_freq = 5
+    save_model = False
+    if not os.path.exists(result_path):
+        os.makedirs(result_path)
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
     task_no = args.task
 
     env = pupperGymEnv(render=False,
@@ -68,8 +71,8 @@ def main():
     if os.path.exists(result_path + "/" + file_name + str(agent_num)):
         print("Loading Existing agent:")
         print(result_path + "/" + file_name + str(agent_num))
-        low_policy_agent.load(result_path + "/" + result_file_name + str(agent_num))
-
+        low_policy_agent.np_load(result_path + "/" + str(result_file_name) + "seed" + str(seed))
+    print("Starting policy theta=", low_policy_agent.policy.theta)
     num_processes = low_policy.nb_directions
     processes = []
     child_pipes = []
@@ -90,8 +93,9 @@ def main():
     print("Started Pupper Training Env")
     t = 0
     while t < (int(max_time_steps)):
-        episode_reward, episode_time_steps = low_policy_agent.train_parallel(parent_pipes)
-        # episode_reward, episode_time_steps = agent.train(env, policy, normalizer, low_policy, parent_pipes, args)
+        # episode_reward, episode_time_steps = low_policy_agent.train_parallel(parent_pipes)
+        # episode_reward, episode_time_steps = train(env, policy, normalizer, low_policy, parent_pipes, args)
+        episode_reward, episode_time_steps = low_policy_agent.train()
         t += episode_time_steps
         print(
             "Total T: {} Episode Num: {} Episode T: {} Reward: {:.2f} REWARD PER STEP: {:.2f}".format(

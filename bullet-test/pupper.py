@@ -152,7 +152,9 @@ class Pupper(object):
         observation = []
         pos, orn = self.Get_Base_PositionAndOrientation()
         roll, pitch, yaw = self.pb.getEulerFromQuaternion([orn[0], orn[1], orn[2], orn[3]])
-        observation.append(pos)
+        observation.append(pos[0])
+        observation.append(pos[1])
+        observation.append(pos[2])
         observation.append(roll)
         observation.append(pitch)
         observation.append(yaw)

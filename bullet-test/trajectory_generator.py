@@ -235,7 +235,7 @@ class stance_controller:
             [
                 -command.horizontal_velocity[0],
                 -command.horizontal_velocity[1],
-                1.0 / self.config.z_time_constant * (state.height - z),
+                1.0 / self.config.z_time_constant * (state.height[leg_index] - z),
             ]
         )
         delta_p = v_xy * self.config.dt
@@ -307,6 +307,9 @@ class swing_controller:
         v = (touchdown_location - foot_location) / time_left * np.array([1, 1, 0])
         delta_foot_location = v * self.config.dt
         z_vector = np.array([0, 0, swing_height_ + command.height])
+        # print("foot_location:{}".format(foot_location * np.array([1, 1, 0])))
+        # print("z_vector:{}".format(z_vector))
+        # print("delta_foot_location:{}".format(delta_foot_location))
         return foot_location * np.array([1, 1, 0]) + z_vector + delta_foot_location
 
 
@@ -326,7 +329,7 @@ class Trajectory_Generator:
         new_foot_locations = np.zeros((3, 4))
         for leg_index in range(4):
             contact_mode = contact_modes[leg_index]
-            foot_location = state.foot_location[:, leg_index]
+            foot_location = state.foot_locations[:, leg_index]
             if contact_mode == 1:
                 new_location = self.stance_controller.next_foot_location(
                     leg_index, state, command[leg_index]
@@ -339,6 +342,7 @@ class Trajectory_Generator:
                 new_location = self.swing_controller.next_foot_location(
                     swing_proportion, leg_index, state, command[leg_index]
                 )
+            # print(new_location)
             new_foot_locations[:, leg_index] = new_location
             return new_foot_locations, contact_modes
 
@@ -348,4 +352,7 @@ class Trajectory_Generator:
         state.ticks += 1
         state.pitch = 0.0
         state.roll = 0.0
-        state.height[:] = command[:].height
+        state.height[:] = [command[0].height,
+                           command[1].height,
+                           command[2].height,
+                           command[3].height]
