@@ -18,7 +18,7 @@ _EXPLORE = 3
 result_file_name = "low_policy_result"
 result_path = "result"
 model_path = "model"
-file_name = "low_policy_trained"
+model_file_name = "low_policy_trained"
 
 
 def main():
@@ -38,7 +38,7 @@ def main():
     print("Seed:{}".format(seed))
     max_time_steps = 4e6
     eval_freq = 5
-    save_model = False
+    save_model = True
     if not os.path.exists(result_path):
         os.makedirs(result_path)
     if not os.path.exists(model_path):
@@ -68,11 +68,14 @@ def main():
     policy = Policy(state_dim, action_dim)
     low_policy_agent = Agent(env, policy, low_policy, normalizer)
     agent_num = 0
-    if os.path.exists(result_path + "/" + file_name + str(agent_num)):
+    if os.path.exists(model_path + "/" + model_file_name + str(agent_num) + "seed" + str(seed) + ".npy"):
         print("Loading Existing agent:")
-        print(result_path + "/" + file_name + str(agent_num))
-        low_policy_agent.np_load(result_path + "/" + str(result_file_name) + "seed" + str(seed))
-    print("Starting policy theta=", low_policy_agent.policy.theta)
+        print(model_path + "/" + model_file_name + str(agent_num))
+        low_policy_agent.np_load(model_path + "/" + model_file_name + str(agent_num) + "seed" + str(seed) + ".npy")
+        print("Starting policy theta=", low_policy_agent.policy.theta)
+    else:
+        print("Start New Training")
+        print("Starting policy theta=", low_policy_agent.policy.theta)
     num_processes = low_policy.nb_directions
     processes = []
     child_pipes = []
@@ -122,7 +125,8 @@ def main():
 
         if (episode_num + 1) % eval_freq == 0:
             if save_model:
-                low_policy_agent.save(model_path + "/" + str(file_name) + str(episode_num))
+                np.save(model_path + "/" + model_file_name + str(agent_num) + "seed" + str(seed) + ".npy",
+                        low_policy_agent.policy.theta)
 
     if args.mp:
         for parent_pipe in parent_pipes:
