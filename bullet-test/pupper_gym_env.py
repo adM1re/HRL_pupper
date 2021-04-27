@@ -28,7 +28,7 @@ class pupperGymEnv(gym.Env):
     """
 
     def __init__(self,
-                 render=True,
+                 render=False,
                  xml_path="bullet-test/pupper_pybullet_out.xml",
                  file_root=pybullet_data.getDataPath(),
                  num_steps_to_log=1000,
@@ -134,7 +134,7 @@ class pupperGymEnv(gym.Env):
         self.task2_total_reward = 0
 
         self.reset_cam([0, 0, 0])
-        if  self._is_render:
+        if self._is_render:
             self.pb.configureDebugVisualizer(self.pb.COV_ENABLE_RENDERING, 1)
         return self.pupper.GetObservation()
 

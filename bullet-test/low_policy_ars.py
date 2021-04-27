@@ -1,6 +1,7 @@
-from ars_lib import ars
 import numpy as np
 import os
+import sys
+# sys.path.append("./")
 import argparse
 import pupper
 import pupper_gym_env
@@ -10,13 +11,14 @@ import multiprocessing as mp
 from multiprocessing import Pipe
 from pupper_gym_env import pupperGymEnv
 from ars_lib.ars import LowPolicy, HighPolicy, Normalizer, Policy, ExploreWorker, Agent
+import ars_lib.ars
 # Messages for Pipe
 _RESET = 1
 _CLOSE = 2
 _EXPLORE = 3
 result_file_name = "low_policy_result"
-result_path = "result/"
-model_path = "policy/"
+result_path = "result"
+model_path = "model"
 file_name = "low_policy_trained"
 
 
@@ -37,9 +39,10 @@ def main():
     print("Seed:{}".format(seed))
     max_time_steps = 4e6
     eval_freq = 1
+    save_model = True
     task_no = args.task
 
-    env = pupperGymEnv(render=True,
+    env = pupperGymEnv(render=False,
                        task=task_no,
                        height_field=0)
     env.seed(seed)
@@ -60,11 +63,11 @@ def main():
     episode_num = args.agent
     normalizer = Normalizer(state_dim)
     policy = Policy(state_dim, action_dim)
-    low_policy_agent = Agent(policy=policy, low_policy=low_policy)
+    low_policy_agent = Agent(env, policy, low_policy, normalizer)
     agent_num = 0
     if os.path.exists(result_path + "/" + file_name + str(agent_num)):
         print("Loading Existing agent:")
-        print(result_path + "/" + file_name + str(agent_num) )
+        print(result_path + "/" + file_name + str(agent_num))
         low_policy_agent.load(result_path + "/" + result_file_name + str(agent_num))
 
     num_processes = low_policy.nb_directions
@@ -84,11 +87,11 @@ def main():
                        )
         p.start()
         processes.append(p)
-
     print("Started Pupper Training Env")
     t = 0
     while t < (int(max_time_steps)):
         episode_reward, episode_time_steps = low_policy_agent.train_parallel(parent_pipes)
+        # episode_reward, episode_time_steps = agent.train(env, policy, normalizer, low_policy, parent_pipes, args)
         t += episode_time_steps
         print(
             "Total T: {} Episode Num: {} Episode T: {} Reward: {:.2f} REWARD PER STEP: {:.2f}".format(
@@ -112,6 +115,10 @@ def main():
         np.save(result_path + "/" + str(result_file_name) + "seed" + str(seed), result)
         # Save training model
         episode_num += 1
+
+        if (episode_num + 1) % eval_freq == 0:
+            if save_model:
+                low_policy_agent.save(model_path + "/" + str(file_name) + str(episode_num))
 
     if args.mp:
         for parent_pipe in parent_pipes:

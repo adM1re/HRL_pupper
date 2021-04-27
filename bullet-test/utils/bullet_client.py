@@ -22,12 +22,12 @@ class BulletClient(object):
     """
         self._shapes = {}
         if connection_mode is None:
-            self._client = pybullet.connect(pybullet.SHARED_MEMORY, options="--opengl2")
+            self._client = pybullet.connect(pybullet.SHARED_MEMORY)
             if self._client >= 0:
                 return
             else:
                 connection_mode = pybullet.DIRECT
-        self._client = pybullet.connect(connection_mode, options="--opengl2")
+        self._client = pybullet.connect(connection_mode)
 
     def __del__(self):
         """Clean up connection if not already done."""

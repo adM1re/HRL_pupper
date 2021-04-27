@@ -86,11 +86,8 @@ class Pupper(object):
         """Reset the pupper to its initial states.
         Args:
         reload_mjcf:
-            是否加载模型文件。否，RESET()函数仅仅将机器人置于初始位置
             Whether to reload the mjcf file. If not, Reset() just place the pupper back to its starting position.
         default_motor_angles:
-            默认的电机角度。如果为 "无"，则保持默认姿势100步。
-            在扭矩控制模式下，保持默认姿势的阶段被跳过。
             The default motor angles. If it is None, pupper will hold a default pose for 100 steps.
             In torque control mode, the phase of holding the default pose is skipped.
         reset_time:
