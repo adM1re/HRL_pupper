@@ -30,14 +30,14 @@ def main():
     parse.add_argument("-t", "--task", type=int, default=1, help="Task Number")
     parse.add_argument("-s", "--seed", help="Random Seed", type=int, default=0)
     parse.add_argument("-r", "--render", help="Is Rendering", type=bool, default=0)
-    parse.add_argument("-m", "--mp", help="Enable Multiprocessing", type=bool, default=1)
+    parse.add_argument("-m", "--mp", help="Enable Multiprocessing", type=bool, default=0)
     parse.add_argument("-p", "--policy", type=str, default="")
     parse.add_argument("-a", "--agent", type=int, default=0)
     args = parse.parse_args()
     seed = 0
     print("Seed:{}".format(seed))
     max_time_steps = 4e6
-    eval_freq = 5
+    eval_freq = 1
     save_model = True
     if not os.path.exists(result_path):
         os.makedirs(result_path)
