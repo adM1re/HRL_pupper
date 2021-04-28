@@ -20,7 +20,7 @@ os.sys.path.insert(0, parentdir)
 
 
 # Setting the Hyper Parameters
-class HighPolicy:
+class HighPolicy(object):
 
     def __init__(self):
         self.nb_steps = 10000
@@ -34,7 +34,7 @@ class HighPolicy:
         self.env_name = "pupper_high_policy"
 
 
-class LowPolicy:
+class LowPolicy(object):
 
     def __init__(self):
         self.nb_steps = 10000
@@ -44,7 +44,7 @@ class LowPolicy:
         self.nb_best_directions = 8
         assert self.nb_best_directions <= self.nb_directions
         self.noise = 0.03
-        self.env = None
+        # self.env = None
         self.env_name = "pupper_low_policy"
 
 # Multiprocess Exploring the policy on one specific direction and over one episode
@@ -103,7 +103,7 @@ def ExploreWorker(rank, childPipe, env, args):
 # Normalizing the states
 
 
-class Normalizer:
+class Normalizer(object):
 
     def __init__(self, nb_inputs):
         self.n = np.zeros(nb_inputs)
@@ -127,7 +127,7 @@ class Normalizer:
 # Building the AI
 
 
-class Policy:
+class Policy(object):
 
     def __init__(self, state_dim, action_dim):
         self.theta = np.zeros((action_dim, state_dim))
@@ -286,7 +286,7 @@ def explore(env, normalizer, policy, direction, delta, low_policy):
 # Training the AI
 
 
-def train(env, policy, normalizer, hp, parent_pipes, args):
+def train_parallel(env, policy, normalizer, hp, parent_pipes, args):
     for step in range(hp.nb_steps):
 
         # Initializing the perturbations deltas and the positive/negative rewards
@@ -296,14 +296,14 @@ def train(env, policy, normalizer, hp, parent_pipes, args):
 
         if parent_pipes:
             for k in range(hp.nb_directions):
-                parentPipe = parent_pipes[k]
-                parentPipe.send([_EXPLORE, [normalizer, policy, hp, "positive", deltas[k]]])
+                parent_pipe = parent_pipes[k]
+                parent_pipe.send([_EXPLORE, [normalizer, policy, hp, "positive", deltas[k]]])
             for k in range(hp.nb_directions):
                 positive_rewards[k] = parent_pipes[k].recv()[0]
 
             for k in range(hp.nb_directions):
-                parentPipe = parent_pipes[k]
-                parentPipe.send([_EXPLORE, [normalizer, policy, hp, "negative", deltas[k]]])
+                parent_pipe = parent_pipes[k]
+                parent_pipe.send([_EXPLORE, [normalizer, policy, hp, "negative", deltas[k]]])
             for k in range(hp.nb_directions):
                 negative_rewards[k] = parent_pipes[k].recv()[0]
 

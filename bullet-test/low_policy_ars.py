@@ -34,7 +34,7 @@ def main():
     parse.add_argument("-p", "--policy", type=str, default="")
     parse.add_argument("-a", "--agent", type=int, default=0)
     args = parse.parse_args()
-    seed = 0
+    seed = 1
     print("Seed:{}".format(seed))
     max_time_steps = 4e6
     eval_freq = 1
@@ -58,7 +58,7 @@ def main():
 
     low_policy = LowPolicy()
     # high_policy = HighPolicy()
-    low_policy.env = env
+    # low_policy.env = env
 
     env.reset()
     episode_reward = 0
@@ -88,7 +88,7 @@ def main():
         p = mp.Process(target=ExploreWorker,
                        args=(rank,
                              child_pipes[rank],
-                             low_policy.env,
+                             env,
                              args)
                        )
         p.start()
@@ -97,8 +97,8 @@ def main():
     t = 0
     while t < (int(max_time_steps)):
         # episode_reward, episode_time_steps = low_policy_agent.train_parallel(parent_pipes)
-        # episode_reward, episode_time_steps = train(env, policy, normalizer, low_policy, parent_pipes, args)
-        episode_reward, episode_time_steps = low_policy_agent.train()
+        episode_reward, episode_time_steps = train_parallel(env=env, policy=policy, normalizer=normalizer, hp=low_policy, parent_pipes=parent_pipes, args=args)
+        # episode_reward, episode_time_steps = low_policy_agent.train()
         t += episode_time_steps
         print(
             "Total T: {} Episode Num: {} Episode T: {} Reward: {:.2f} REWARD PER STEP: {:.2f}".format(
@@ -110,9 +110,11 @@ def main():
             )
         )
         if episode_num == 0:
-            result = np.array(
+            old_result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed), result)
+            new_result = np.array(
                 [[episode_reward, episode_reward / float(episode_time_steps)]]
             )
+            result = np.concatenate((old_result, new_result))
         else:
             new_result = np.array(
                 [[episode_reward, episode_reward / float(episode_time_steps)]]
