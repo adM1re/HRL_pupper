@@ -212,7 +212,6 @@ class pupperGymEnv(gym.Env):
                 self.forward_weight * forward_reward +
                 self.rp_weight * rp_reward
         )
-        print(reward)
         return reward
 
     def task2_reward(self):
