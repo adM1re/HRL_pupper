@@ -20,6 +20,12 @@ INIT_JOINT_STATES = [[-0.204, 0.013, [0, 0, 0, 0, 0, 0], -0.670], [1.072, 0.043,
                      [-0.212, 0.006, [0, 0, 0, 0, 0, 0], 0.622], [1.074, 0.009, [0, 0, 0, 0, 0, 0], -0.498],
                      [-1.854, 0.168, [0, 0, 0, 0, 0, 0], -0.158], [0.212, 0.057, [0, 0, 0, 0, 0, 0], -0.580],
                      [1.073, 0.019, [0, 0, 0, 0, 0, 0], -0.488], [-1.855, 0.065, [0, 0, 0, 0, 0, 0], -0.119]]
+INIT_JOINT_POS = [[-0.204, 0.013, -0.670], [1.072, 0.043, 0.293],
+                     [-1.873, -0.114,  0.760], [0.204, -0.056, 0.565],
+                     [1.071, -0.012, 0.516], [-1.877, -0.036, 0.700],
+                     [-0.212, 0.006, 0.622], [1.074, 0.009,  -0.498],
+                     [-1.854, 0.168, -0.158], [0.212, 0.057, -0.580],
+                     [1.073, 0.019, -0.488], [-1.855, 0.065, -0.119]]
 
 class Pupper(object):
     def __init__(self,
@@ -73,6 +79,11 @@ class Pupper(object):
         self.bl_command = command(self._TG_config.default_z_ref)
         self.br_command = command(self._TG_config.default_z_ref)
         self.command = np.array(4)
+        self.init_command = [self.fr_command,
+                             self.fl_command,
+                             self.bl_command,
+                             self.br_command]
+        self.init_state = self.state
 
     def HeightField(self, hf, hf_no):
         if hf:
@@ -83,8 +94,8 @@ class Pupper(object):
 
     def ResetPose(self, body_ids, init_pos, init_orn):
         self.pb.resetBasePositionAndOrientation(body_ids, init_pos, init_orn)
-        self.pb.resetJoinState(body_ids, self.joint_indices, INIT_JOINT_STATES)
-        self.pb.resetBasePositionAndOrientation(body_ids, INIT_POSITION2, init_orn)
+        # self.TG.run(self.init_state, self.init_command)
+        # self.pb.resetBasePositionAndOrientation(body_ids, init_pos, init_orn)
 
     def reset(self,
               reload_mjcf=True,
@@ -106,7 +117,7 @@ class Pupper(object):
         if reload_mjcf:
             self._pupper_all_body_ids = self.pb.loadMJCF("pupper_pybullet_out.xml")
             self.body_id = self._pupper_all_body_ids[1]
-            numjoints = pybullet.getNumJoints(self.body_id)
+            self.numjoints = pybullet.getNumJoints(self.body_id)
             self.joint_indices = list(range(0, 24, 2))
             # print(self.body_id)
             self.ResetPose(self.body_id, self.initial_position, self.initial_orientation)
@@ -114,7 +125,7 @@ class Pupper(object):
             self.ResetPose(self.body_id, self.initial_position, self.initial_orientation)
         self._step_counter = 0
 
-        self._observation_history.clear()
+        """self._observation_history.clear()
         if reset_time > 0.0 and default_motor_angles is not None:
             for _ in range(100):
                 self.ApplyAction(self.initial_pose)
@@ -122,7 +133,7 @@ class Pupper(object):
             num_steps_to_reset = int(reset_time / self.time_step)
             for _ in range(num_steps_to_reset):
                 self.ApplyAction(default_motor_angles)
-                self.pb.stepSimulation()
+                self.pb.stepSimulation()"""
 
     def Get_Base_PositionAndOrientation(self):
         position, orientation = pybullet.getBasePositionAndOrientation(self.body_id)
@@ -245,6 +256,7 @@ class Pupper(object):
 
     def step(self, action):
         for _ in range(self._action_repeat):
+            # print("step")
             self.ApplyAction(action)
             self.pb.stepSimulation()
             self._step_counter += 1

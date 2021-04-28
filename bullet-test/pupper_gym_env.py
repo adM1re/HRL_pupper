@@ -66,7 +66,7 @@ class pupperGymEnv(gym.Env):
 
         self._is_render = render
         self.hard_reset = True
-        self.time_step = time_step
+        self.time_step = 1/240
         self._env_step_counter = 0
         self._num_step_to_log = num_step_to_log
 
@@ -74,7 +74,7 @@ class pupperGymEnv(gym.Env):
         self._last_base_orientation = [0, 0, 0, 1]
 
         self._cam_dist = 3.0
-        self._cam_yaw1 = 0
+        self._cam_yaw1 = -45
         self._cam_yaw2 = -90
         self._cam_pitch = -30
 
@@ -87,6 +87,7 @@ class pupperGymEnv(gym.Env):
             self._pybullet_client = bullet_client.BulletClient(connection_mode=pybullet.GUI)
         else:
             self._pybullet_client = bullet_client.BulletClient()
+        self.pb.setGravity(0, 0, -9.8)
         self.seed()
         self.reset()
         self.height_field = height_field
@@ -115,8 +116,9 @@ class pupperGymEnv(gym.Env):
         self.pb.configureDebugVisualizer(self.pb.COV_ENABLE_RENDERING, 0)
         if self.hard_reset:
             self.pb.resetSimulation()
+            self.pb.setGravity(0, 0, -9.8)
             self.pb.setTimeStep(self.time_step)
-            self.ground_id = self.pb.loadURDF(self._file_root + "/plane.urdf")
+            # self.ground_id = self.pb.loadURDF(self._file_root + "/plane.urdf")
             self.pupper = Pupper(pybullet_client=self.pb,
                                  height_field=False,
                                  height_field_no=1,
@@ -125,14 +127,16 @@ class pupperGymEnv(gym.Env):
                                  motor_kv=self._motor_kv,
                                  motor_max_torque=self._motor_max_torque
                                  )
-        self.pupper.reset(reload_mjcf=True)
+            self.pupper.reset(reload_mjcf=True)
+        else:
+            self.pupper.reset(reload_mjcf=False)
         self._env_step_counter = 0
 
         self._last_base_position = [0, 0, 0]
         self._last_base_orientation = [0, 0, 0, 1]
         self.task1_total_reward = 0
         self.task2_total_reward = 0
-
+        self.pb.stepSimulation()
         self.reset_cam([0, 0, 0])
         if self._is_render:
             self.pb.configureDebugVisualizer(self.pb.COV_ENABLE_RENDERING, 1)

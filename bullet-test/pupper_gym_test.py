@@ -9,6 +9,7 @@ from utils import bullet_client as bc
 from gym import spaces
 from gym.utils import seeding
 from gym.envs.registration import register
+import pupper_gym_env
 
 DEFAULT_MJCF_VERSION = "default"
 pupper_MJCF_VERSION_MAP = {DEFAULT_MJCF_VERSION: pupper.Pupper}
@@ -173,3 +174,16 @@ class pupperGymEnvTest(gym.Env):
         self._action_repeat = int(round(control_step/simulation_step))
         self._num_bullet_solver_iterations = (NUM_SIMULATION_ITERATION_STEPS /
                                               self._action_repeat)
+
+
+def main():
+    env = pupper_gym_env.pupperGymEnv(render=True,  task=1,   height_field=0)
+    env.reset()
+
+    while True:
+        pybullet.stepSimulation()
+        # env.reset()
+
+
+if __name__ == '__main__':
+    main()
