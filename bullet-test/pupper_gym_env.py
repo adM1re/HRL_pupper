@@ -33,7 +33,7 @@ class pupperGymEnv(gym.Env):
                  file_root=pybullet_data.getDataPath(),
                  num_steps_to_log=1000,
                  log_path=None,
-                 forward_weight=1.0,
+                 forward_weight=5.0,
                  rp_wight=2.0,
                  drift_weight=1.0,
                  num_step_to_log=10,
