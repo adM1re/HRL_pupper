@@ -290,7 +290,7 @@ class swing_controller:
         # print("self.config.dt.{}".format(self.config.dt))
         # print(delta_p_2d_0)
         delta_p = np.array([delta_p_2d_0, delta_p_2d_1, 0])
-        print(delta_p)
+        # print(delta_p)
         theta = (
             self.config.beta
             * self.config.stance_ticks
@@ -338,7 +338,7 @@ class Trajectory_Generator:
                   state,
                   command):
         contact_modes = self.gait_controller.contacts(state.ticks)
-        print(contact_modes)
+        # print(contact_modes)
         new_foot_locations = np.zeros((3, 4))
         for leg_index in range(4):
             contact_mode = contact_modes[leg_index]

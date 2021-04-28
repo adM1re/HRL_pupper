@@ -180,16 +180,17 @@ class pupperGymEnvTest(gym.Env):
 def main():
     env = pupper_gym_env.pupperGymEnv(render=True, task=1, height_field=0, hard_reset=False)
     env.reset()
-    action = [0, 0.5, -1,
-              0, 0.5, -1,
-              0, 0.5, -1,
-              0, 0.5, -1]
-    action1 = [0.1, 0, 0]
-    action2 = [0.25, 0, 0]
-    action3 = [0.1, 0, 0]
-    action4 = [0.25, 0, 0]
+    action = [0.4, 0.2, 0,
+              0.4, 0.3, 0,
+              0.4, 0.2, 0,
+              0.4, 0.1, 0]
+    action1 = [0.5, 0, 0.5]
+    action2 = [0.5, 0, 0.5]
+    action3 = [0.5, 0, 0.5]
+    action4 = [0.5, 0, 0.5]
     last_loop = 0
     env.pupper.fr_command.horizontal_velocity = action1[0:2]
+    env.pupper.fr_command.height = -0.3
     env.pupper.fl_command.horizontal_velocity = action2[0:2]
     env.pupper.br_command.horizontal_velocity = action3[0:2]
     env.pupper.bl_command.horizontal_velocity = action4[0:2]
@@ -199,10 +200,11 @@ def main():
         now = time.time()
         if now - last_loop >= 0.01:
             # Check if we should transition to "deactivated"
-            # env.pupper.ResetPose()
+            env.pupper.ResetPose()
             # Step the controller forward by dt
-            env.pupper.TG.run(state=env.pupper.state, command=env.pupper.command)
-            env.pupper.foot_position2motor_angle(env.pupper.state.final_foot_locations)
+            env.step(action)
+            # env.pupper.TG.run(state=env.pupper.state, command=env.pupper.command)
+            # env.pupper.foot_position2motor_angle(env.pupper.state.final_foot_locations)
             pybullet.stepSimulation()
             last_loop = now
 
