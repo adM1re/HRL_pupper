@@ -44,8 +44,7 @@ class SimHardwareConfig:
         )
 
 
-def hip_relative_leg_ik(r_body_foot: np.ndarray, leg_index: int,
-                        config) -> np.ndarray:
+def hip_relative_leg_ik(r_body_foot, leg_index, config):
     """Find the joint angles corresponding to the given body-relative foot position for a given leg and configuration
 
     Parameters

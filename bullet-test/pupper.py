@@ -12,8 +12,14 @@ import kinematics
 from kinematics import SimHardwareConfig
 
 INIT_POSITION = [0, 0, 0.3]
+INIT_POSITION2 = [0, 0, 0.17]
 INIT_ORIENTATION = [0, 0, 0, 1]
-
+INIT_JOINT_STATES = [[-0.204, 0.013, [0, 0, 0, 0, 0, 0], -0.670], [1.072, 0.043, [0, 0, 0, 0, 0, 0], 0.293],
+                     [-1.873, -0.114, [0, 0, 0, 0, 0, 0], 0.760], [0.204, -0.056, [0, 0, 0, 0, 0, 0], 0.565],
+                     [1.071, -0.012, [0, 0, 0, 0, 0, 0], 0.516], [-1.877, -0.036, [0, 0, 0, 0, 0, 0], 0.700],
+                     [-0.212, 0.006, [0, 0, 0, 0, 0, 0], 0.622], [1.074, 0.009, [0, 0, 0, 0, 0, 0], -0.498],
+                     [-1.854, 0.168, [0, 0, 0, 0, 0, 0], -0.158], [0.212, 0.057, [0, 0, 0, 0, 0, 0], -0.580],
+                     [1.073, 0.019, [0, 0, 0, 0, 0, 0], -0.488], [-1.855, 0.065, [0, 0, 0, 0, 0, 0], -0.119]]
 
 class Pupper(object):
     def __init__(self,
@@ -77,6 +83,8 @@ class Pupper(object):
 
     def ResetPose(self, body_ids, init_pos, init_orn):
         self.pb.resetBasePositionAndOrientation(body_ids, init_pos, init_orn)
+        self.pb.resetJoinState(body_ids, self.joint_indices, INIT_JOINT_STATES)
+        self.pb.resetBasePositionAndOrientation(body_ids, INIT_POSITION2, init_orn)
 
     def reset(self,
               reload_mjcf=True,

@@ -288,7 +288,7 @@ def explore(env, normalizer, policy, direction, delta, low_policy):
 
 def train_parallel(env, policy, normalizer, hp, parent_pipes, args):
     for step in range(hp.nb_steps):
-
+        print("------------------TRAINING------------------------")
         # Initializing the perturbations deltas and the positive/negative rewards
         deltas = policy.sample_deltas(hp)
         positive_rewards = [0] * hp.nb_directions
@@ -327,13 +327,19 @@ def train_parallel(env, policy, normalizer, hp, parent_pipes, args):
         }
         order = sorted(scores.keys(), key=lambda x: -scores[x])[:hp.nb_best_directions]
         rollouts = [(positive_rewards[k], negative_rewards[k], deltas[k]) for k in order]
-
+        print("Updating policy")
         # Updating our policy
-        policy.update(rollouts, sigma_r, args)
+        policy.update(rollouts, sigma_r, hp)
 
         # Printing the final reward of the policy after the update
-        reward_evaluation = explore(env, normalizer, policy, None, None, hp)
-        print('Step:', step, 'Reward:', reward_evaluation)
+        reward_evaluation, num_plays = explore(env=env,
+                                               normalizer=normalizer,
+                                               policy=policy,
+                                               direction=None,
+                                               delta=None,
+                                               low_policy=hp)
+        # print('Step:', step, 'Reward:', reward_evaluation)
+        return reward_evaluation, num_plays
 
 
 # Running the main code
