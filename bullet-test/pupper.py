@@ -194,16 +194,16 @@ class Pupper(object):
     def GetActionUpperBound(self):
         upper_bound = np.array([0.0] * self.GetActionDimension())
         upper_bound[0] = 0.5
-        upper_bound[1] = 0.1
+        upper_bound[1] = 0.2
         upper_bound[2] = 0.3
         upper_bound[3] = 0.5
-        upper_bound[4] = 0.1
+        upper_bound[4] = 0.2
         upper_bound[5] = 0.3
         upper_bound[6] = 0.5
-        upper_bound[7] = 0.1
+        upper_bound[7] = 0.2
         upper_bound[8] = 0.3
         upper_bound[9] = 0.5
-        upper_bound[10] = 0.1
+        upper_bound[10] = 0.2
         upper_bound[11] = 0.3
         return upper_bound
 
@@ -291,7 +291,7 @@ class Pupper(object):
 
     def ApplyAction(self, action):
         # action include :  [[forward_step_length, lateral_length, single_height]*4]
-        # action = self.action_limit(action)
+        action = self.action_limit(action)
         self.command = self.transformAction2Command2(action)
         self.TG.run(self.state, self.command)
         self.foot_position2motor_angle(self.state.final_foot_locations)
