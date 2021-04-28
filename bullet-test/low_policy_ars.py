@@ -34,7 +34,7 @@ def main():
     parse.add_argument("-p", "--policy", type=str, default="")
     parse.add_argument("-a", "--agent", type=int, default=0)
     args = parse.parse_args()
-    seed = 1
+    seed = 2
     print("Seed:{}".format(seed))
     max_time_steps = 4e6
     eval_freq = 1
@@ -110,11 +110,16 @@ def main():
             )
         )
         if episode_num == 0:
-            old_result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed), result)
-            new_result = np.array(
-                [[episode_reward, episode_reward / float(episode_time_steps)]]
-            )
-            result = np.concatenate((old_result, new_result))
+            if agent_num == 0:
+                result = np.array(
+                    [[episode_reward, episode_reward / float(episode_time_steps)]]
+                )
+            else:
+                result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed))
+                new_result = np.array(
+                    [[episode_reward, episode_reward / float(episode_time_steps)]]
+                )
+                result = np.concatenate((result, new_result))
         else:
             new_result = np.array(
                 [[episode_reward, episode_reward / float(episode_time_steps)]]
