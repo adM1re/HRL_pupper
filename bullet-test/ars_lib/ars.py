@@ -38,10 +38,10 @@ class LowPolicy(object):
 
     def __init__(self):
         self.nb_steps = 10000
-        self.episode_length = 2000
+        self.episode_length = 5000
         self.learning_rate = 0.02
         self.nb_directions = 16
-        self.nb_best_directions = 8
+        self.nb_best_directions = 16
         assert self.nb_best_directions <= self.nb_directions
         self.noise = 0.03
         # self.env = None
@@ -276,6 +276,7 @@ def explore(env, normalizer, policy, direction, delta, low_policy):
         normalizer.observe(state)
         state = normalizer.normalize(state)
         action = policy.evaluate(state, delta, direction, low_policy)
+        # print(action)
         state, reward, done, _ = env.step(action)
         # reward = max(min(reward, 1), -1)
         sum_rewards += reward

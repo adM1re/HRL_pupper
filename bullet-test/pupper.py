@@ -14,18 +14,7 @@ from kinematics import SimHardwareConfig
 INIT_POSITION = [0, 0, 0.3]
 INIT_POSITION2 = [0, 0, 0.17]
 INIT_ORIENTATION = [0, 0, 0, 1]
-INIT_JOINT_STATES = [[-0.204, 0.013, [0, 0, 0, 0, 0, 0], -0.670], [1.072, 0.043, [0, 0, 0, 0, 0, 0], 0.293],
-                     [-1.873, -0.114, [0, 0, 0, 0, 0, 0], 0.760], [0.204, -0.056, [0, 0, 0, 0, 0, 0], 0.565],
-                     [1.071, -0.012, [0, 0, 0, 0, 0, 0], 0.516], [-1.877, -0.036, [0, 0, 0, 0, 0, 0], 0.700],
-                     [-0.212, 0.006, [0, 0, 0, 0, 0, 0], 0.622], [1.074, 0.009, [0, 0, 0, 0, 0, 0], -0.498],
-                     [-1.854, 0.168, [0, 0, 0, 0, 0, 0], -0.158], [0.212, 0.057, [0, 0, 0, 0, 0, 0], -0.580],
-                     [1.073, 0.019, [0, 0, 0, 0, 0, 0], -0.488], [-1.855, 0.065, [0, 0, 0, 0, 0, 0], -0.119]]
-INIT_JOINT_POS = [[-0.204, 0.013, -0.670], [1.072, 0.043, 0.293],
-                     [-1.873, -0.114,  0.760], [0.204, -0.056, 0.565],
-                     [1.071, -0.012, 0.516], [-1.877, -0.036, 0.700],
-                     [-0.212, 0.006, 0.622], [1.074, 0.009,  -0.498],
-                     [-1.854, 0.168, -0.158], [0.212, 0.057, -0.580],
-                     [1.073, 0.019, -0.488], [-1.855, 0.065, -0.119]]
+
 
 class Pupper(object):
     def __init__(self,
@@ -84,6 +73,9 @@ class Pupper(object):
                              self.bl_command,
                              self.br_command]
         self.init_state = self.state
+        self.x_length = 0.5
+        self.y_length = 0.1
+        self.h_length = 0.3
 
     def HeightField(self, hf, hf_no):
         if hf:
@@ -181,22 +173,30 @@ class Pupper(object):
 
     def GetActionUpperBound(self):
         upper_bound = np.array([0.0] * self.GetActionDimension())
-        upper_bound[0:2] = 0.5
-        upper_bound[3:5] = 0.5
-        upper_bound[6:8] = 0.5
-        upper_bound[9:11] = 0.5
+        upper_bound[0] = 0.5
+        upper_bound[1] = 0.1
         upper_bound[2] = 0.3
+        upper_bound[3] = 0.5
+        upper_bound[4] = 0.1
         upper_bound[5] = 0.3
+        upper_bound[6] = 0.5
+        upper_bound[7] = 0.1
         upper_bound[8] = 0.3
+        upper_bound[9] = 0.5
+        upper_bound[10] = 0.1
         upper_bound[11] = 0.3
         return upper_bound
 
     def GetActionLowerBound(self):
         low_bound = np.array([0.0] * self.GetActionDimension())
-        low_bound[0:2] = -0.5
-        low_bound[3:5] = -0.5
-        low_bound[6:8] = -0.5
-        low_bound[9:11] = -0.5
+        low_bound[0] = -0.5
+        low_bound[1] = -0.1
+        low_bound[3] = -0.5
+        low_bound[4] = -0.1
+        low_bound[6] = -0.5
+        low_bound[7] = -0.1
+        low_bound[9] = -0.5
+        low_bound[10] = -0.1
         # low_bound[2][5][8][11] = -0.0
         return low_bound
 
@@ -248,8 +248,24 @@ class Pupper(object):
             forces=[self.motor_max_torque] * 12,
         )
 
+    def action_limit(self, action):
+        action[0] = np.clip(action[0], self.x_length, -self.x_length)
+        action[1] = np.clip(action[1], self.y_length, -self.y_length)
+        action[2] = np.clip(action[2], self.h_length, 0)
+        action[3] = np.clip(action[3], self.x_length, -self.x_length)
+        action[4] = np.clip(action[4], self.y_length, -self.y_length)
+        action[5] = np.clip(action[5], self.h_length, 0)
+        action[6] = np.clip(action[6], self.x_length, -self.x_length)
+        action[7] = np.clip(action[7], self.y_length, -self.y_length)
+        action[8] = np.clip(action[8], self.h_length, 0)
+        action[9] = np.clip(action[9], self.x_length, -self.x_length)
+        action[10] = np.clip(action[10], self.y_length, -self.y_length)
+        action[11] = np.clip(action[11], self.h_length, 0)
+        return action
+
     def ApplyAction(self, action):
         # action include :  [[forward_step_length, lateral_length, single_height]*4]
+        action = self.action_limit(action)
         self.command = self.transformAction2Command(action)
         self.TG.run(self.state, self.command)
         self.foot_position2motor_angle(self.state.final_foot_locations)

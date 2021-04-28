@@ -34,7 +34,7 @@ def main():
     parse.add_argument("-p", "--policy", type=str, default="")
     parse.add_argument("-a", "--agent", type=int, default=0)
     args = parse.parse_args()
-    seed = 2
+    seed = 0
     print("Seed:{}".format(seed))
     max_time_steps = 4e6
     eval_freq = 1
@@ -70,7 +70,7 @@ def main():
     agent_num = 0
     if os.path.exists(model_path + "/" + model_file_name + str(agent_num) + "seed" + str(seed) + ".npy"):
         print("Loading Existing agent:")
-        print(model_path + "/" + model_file_name + str(agent_num))
+        print(model_path + "/" + model_file_name + str(agent_num) + "seed" + str(seed) + ".npy")
         low_policy_agent.np_load(model_path + "/" + model_file_name + str(agent_num) + "seed" + str(seed) + ".npy")
         print("Starting policy theta=", low_policy_agent.policy.theta)
     else:
