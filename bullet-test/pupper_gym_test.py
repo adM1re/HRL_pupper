@@ -10,6 +10,7 @@ from gym import spaces
 from gym.utils import seeding
 from gym.envs.registration import register
 import pupper_gym_env
+import trajectory_generator
 
 DEFAULT_MJCF_VERSION = "default"
 pupper_MJCF_VERSION_MAP = {DEFAULT_MJCF_VERSION: pupper.Pupper}
@@ -177,12 +178,16 @@ class pupperGymEnvTest(gym.Env):
 
 
 def main():
-    env = pupper_gym_env.pupperGymEnv(render=True,  task=1,   height_field=0)
+    env = pupper_gym_env.pupperGymEnv(render=True,  task=1,   height_field=0, hard_reset=False)
     env.reset()
-
+    action = [0.5, 0, 0,
+              0.5, 0, 0,
+              0.5, 0, 0,
+              0.5, 0, 0]
     while True:
-        pybullet.stepSimulation()
-        # env.reset()
+        env.step(action)
+        for _ in range(300):
+            env.reset()
 
 
 if __name__ == '__main__':

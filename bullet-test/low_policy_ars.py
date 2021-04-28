@@ -34,7 +34,7 @@ def main():
     parse.add_argument("-p", "--policy", type=str, default="")
     parse.add_argument("-a", "--agent", type=int, default=0)
     args = parse.parse_args()
-    seed = 0
+    seed = 3
     print("Seed:{}".format(seed))
     max_time_steps = 4e6
     eval_freq = 1

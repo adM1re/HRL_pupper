@@ -272,13 +272,19 @@ class swing_controller:
         self.config = config
 
     def raibert_touchdown_location(self, leg_index, command):
-        delta_p_2d = (
+        delta_p_2d_0 = (
             self.config.alpha
             * self.config.stance_ticks
             * self.config.dt
-            * command.horizontal_velocity
+            * command.horizontal_velocity[0]
         )
-        delta_p = np.array([delta_p_2d[0], delta_p_2d[1], 0])
+        delta_p_2d_1 = (
+                self.config.alpha
+                * self.config.stance_ticks
+                * self.config.dt
+                * command.horizontal_velocity[1]
+        )
+        delta_p = np.array([delta_p_2d_0, delta_p_2d_1, 0])
         theta = (
             self.config.beta
             * self.config.stance_ticks

@@ -33,7 +33,7 @@ class pupperGymEnv(gym.Env):
                  file_root=pybullet_data.getDataPath(),
                  num_steps_to_log=1000,
                  log_path=None,
-                 forward_weight=5.0,
+                 forward_weight=10.0,
                  rp_wight=2.0,
                  drift_weight=1.0,
                  num_step_to_log=10,
@@ -59,7 +59,7 @@ class pupperGymEnv(gym.Env):
         self.rp_weight = rp_wight
         self.drift_weight = drift_weight
         self.distance_limit = distance_limit
-        self.target_position = [3, 5, 0]
+        self.target_position = [20, 0, 0]
         self.target_yaw = np.pi/4
         self.task1_total_reward = 0
         self.task2_total_reward = 0
@@ -73,7 +73,7 @@ class pupperGymEnv(gym.Env):
         self._last_base_position = [0, 0, 0]
         self._last_base_orientation = [0, 0, 0, 1]
 
-        self._cam_dist = 3.0
+        self._cam_dist = 1.0
         self._cam_yaw1 = -45
         self._cam_yaw2 = -90
         self._cam_pitch = -30
@@ -171,7 +171,6 @@ class pupperGymEnv(gym.Env):
 
     def is_fallen(self):
         orientation = self.pupper.GetBaseOrientation()
-        orientation = self.pupper.GetBaseOrientation()
         rot_mat = self.pb.getMatrixFromQuaternion(orientation)
         local_up = rot_mat[6:]
         return np.dot(np.asarray([0, 0, 1]), np.asarray(local_up)) < 0.55
@@ -198,6 +197,7 @@ class pupperGymEnv(gym.Env):
         current_base_position = self.pupper.GetBasePosition()
         # get observation
         obs = self.pupper.GetObservation()
+        done = self.is_reached_goal()
 
         pos = obs[0:3]
         roll = obs[3]
@@ -212,6 +212,8 @@ class pupperGymEnv(gym.Env):
                 self.forward_weight * forward_reward +
                 self.rp_weight * rp_reward
         )
+        if done:
+            reward += 1000
         return reward
 
     def task2_reward(self):

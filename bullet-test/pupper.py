@@ -14,7 +14,14 @@ from kinematics import SimHardwareConfig
 INIT_POSITION = [0, 0, 0.3]
 INIT_POSITION2 = [0, 0, 0.17]
 INIT_ORIENTATION = [0, 0, 0, 1]
-
+INIT_MOTOR_POS = [[-0.2, 0, 1], [1.06, 0, 0], [-1.8, 0, 0],
+                  [0.2, 0, -1], [1.06, 0, 0], [-1.8, 0, 0],
+                  [-0.2, 0, 0], [1.06, 0, 0], [-1.8, 0, 0],
+                  [0.2, 0, 0], [1.06, 0, 0], [-1.8, 0, 0]]
+INIT_MOTOR_ANGLE = np.array([0, 0, 0,
+                             0, 0, 0,
+                             0, 0, 0,
+                             0, 0, 0])
 
 class Pupper(object):
     def __init__(self,
@@ -86,6 +93,15 @@ class Pupper(object):
 
     def ResetPose(self, body_ids, init_pos, init_orn):
         self.pb.resetBasePositionAndOrientation(body_ids, init_pos, init_orn)
+        for _ in range(20):
+            self.pb.resetBasePositionAndOrientation(body_ids, init_pos, init_orn)
+            for i in range(24):
+                self.pb.resetJointState(self.body_id, i, targetValue=0)
+                """self.pb.resetJointState(self.body_id, i, targetValue=INIT_MOTOR_ANGLE[i])
+                self.pb.resetJointState(self.body_id, i + 2, targetValue=INIT_MOTOR_ANGLE[i])
+                self.pb.resetJointState(self.body_id, i + 6, targetValue=INIT_MOTOR_ANGLE[i+3])
+                self.pb.resetJointState(self.body_id, i + 12, targetValue=INIT_MOTOR_ANGLE[i+6])
+                self.pb.resetJointState(self.body_id, i + 18, targetValue=INIT_MOTOR_ANGLE[i+9])"""
         # self.TG.run(self.init_state, self.init_command)
         # self.pb.resetBasePositionAndOrientation(body_ids, init_pos, init_orn)
 
