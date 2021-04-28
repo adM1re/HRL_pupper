@@ -18,10 +18,10 @@ INIT_MOTOR_POS = [[-0.2, 0, 1], [1.06, 0, 0], [-1.8, 0, 0],
                   [0.2, 0, -1], [1.06, 0, 0], [-1.8, 0, 0],
                   [-0.2, 0, 0], [1.06, 0, 0], [-1.8, 0, 0],
                   [0.2, 0, 0], [1.06, 0, 0], [-1.8, 0, 0]]
-INIT_MOTOR_ANGLE = np.array([0, 0, 0,
-                             0, 0, 0,
-                             0, 0, 0,
-                             0, 0, 0])
+INIT_MOTOR_ANGLE = [0, 0.5, -1,
+                    0, 0.5, -1,
+                    0, 0.5, -1,
+                    0, 0.5, -1]
 
 class Pupper(object):
     def __init__(self,
@@ -91,19 +91,21 @@ class Pupper(object):
             elif hf_no == 2:
                 self.pb.loadURDF(self.file_root + "ground_test2.urdf")
 
-    def ResetPose(self, body_ids, init_pos, init_orn):
-        self.pb.resetBasePositionAndOrientation(body_ids, init_pos, init_orn)
+    def ResetPose(self):
+        self.pb.resetBasePositionAndOrientation(self.body_id, self.initial_position, self.initial_orientation)
+
+    def reset_joint(self):
         for _ in range(20):
-            self.pb.resetBasePositionAndOrientation(body_ids, init_pos, init_orn)
-            for i in range(24):
-                self.pb.resetJointState(self.body_id, i, targetValue=0)
-                """self.pb.resetJointState(self.body_id, i, targetValue=INIT_MOTOR_ANGLE[i])
-                self.pb.resetJointState(self.body_id, i + 2, targetValue=INIT_MOTOR_ANGLE[i])
-                self.pb.resetJointState(self.body_id, i + 6, targetValue=INIT_MOTOR_ANGLE[i+3])
-                self.pb.resetJointState(self.body_id, i + 12, targetValue=INIT_MOTOR_ANGLE[i+6])
-                self.pb.resetJointState(self.body_id, i + 18, targetValue=INIT_MOTOR_ANGLE[i+9])"""
-        # self.TG.run(self.init_state, self.init_command)
-        # self.pb.resetBasePositionAndOrientation(body_ids, init_pos, init_orn)
+            self.pb.resetBasePositionAndOrientation(self.body_id, self.initial_position, self.initial_orientation)
+            pybullet.setJointMotorControlArray(
+                bodyUniqueId=self.body_id,
+                jointIndices=self.joint_indices,
+                controlMode=pybullet.POSITION_CONTROL,
+                targetPositions=list(INIT_MOTOR_ANGLE),
+                positionGains=[self.motor_kp] * 12,
+                velocityGains=[self.motor_kv] * 12,
+                forces=[self.motor_max_torque] * 12,
+            )
 
     def reset(self,
               reload_mjcf=True,
@@ -128,9 +130,11 @@ class Pupper(object):
             self.numjoints = pybullet.getNumJoints(self.body_id)
             self.joint_indices = list(range(0, 24, 2))
             # print(self.body_id)
-            self.ResetPose(self.body_id, self.initial_position, self.initial_orientation)
+            self.ResetPose()
+            self.reset_joint()
         else:
-            self.ResetPose(self.body_id, self.initial_position, self.initial_orientation)
+            self.ResetPose()
+            self.reset_joint()
         self._step_counter = 0
 
         """self._observation_history.clear()
@@ -250,10 +254,16 @@ class Pupper(object):
                 self.bl_command,
                 self.br_command]
 
+    def transformAction2Command2(self, action):
+        self.fr_command.horizontal_velocity = action[0:2]
+        self.fr_command.height = action[2]
+        return self.fr_command
+
     def foot_position2motor_angle(self, foot_positions):
         serial_joint_angles = kinematics.serial_quadruped_inverse_kinematics(
             foot_positions, self.sim_hardware_config
         )
+        # print(foot_positions)
         pybullet.setJointMotorControlArray(
             bodyUniqueId=self.body_id,
             jointIndices=self.joint_indices,
@@ -281,15 +291,27 @@ class Pupper(object):
 
     def ApplyAction(self, action):
         # action include :  [[forward_step_length, lateral_length, single_height]*4]
-        action = self.action_limit(action)
-        self.command = self.transformAction2Command(action)
+        # action = self.action_limit(action)
+        self.command = self.transformAction2Command2(action)
         self.TG.run(self.state, self.command)
         self.foot_position2motor_angle(self.state.final_foot_locations)
+
+    def ApplyAction2(self, action):
+        pybullet.setJointMotorControlArray(
+            bodyUniqueId=self.body_id,
+            jointIndices=self.joint_indices,
+            controlMode=pybullet.POSITION_CONTROL,
+            targetPositions=list(action),
+            positionGains=[self.motor_kp] * 12,
+            velocityGains=[self.motor_kv] * 12,
+            forces=[self.motor_max_torque] * 12,
+        )
 
     def step(self, action):
         for _ in range(self._action_repeat):
             # print("step")
             self.ApplyAction(action)
+            # self.ApplyAction2(action)
             self.pb.stepSimulation()
             self._step_counter += 1
 

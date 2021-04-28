@@ -33,7 +33,7 @@ class command:
         self.roll = 0.0
 
         self.hop_event = False
-        self.trot_event = False
+        self.trot_event = True
         self.activate_event = False
 
     def __str__(self):
@@ -284,7 +284,13 @@ class swing_controller:
                 * self.config.dt
                 * command.horizontal_velocity[1]
         )
+
+        # print("self.config.alpha.{}".format(self.config.alpha))
+        # print("self.config.stance_ticks.{}".format(self.config.stance_ticks))
+        # print("self.config.dt.{}".format(self.config.dt))
+        # print(delta_p_2d_0)
         delta_p = np.array([delta_p_2d_0, delta_p_2d_1, 0])
+        print(delta_p)
         theta = (
             self.config.beta
             * self.config.stance_ticks
@@ -332,6 +338,7 @@ class Trajectory_Generator:
                   state,
                   command):
         contact_modes = self.gait_controller.contacts(state.ticks)
+        print(contact_modes)
         new_foot_locations = np.zeros((3, 4))
         for leg_index in range(4):
             contact_mode = contact_modes[leg_index]
@@ -350,7 +357,7 @@ class Trajectory_Generator:
                 )
             # print(new_location)
             new_foot_locations[:, leg_index] = new_location
-            return new_foot_locations, contact_modes
+        return new_foot_locations, contact_modes
 
     def run(self, state, command):
         state.foot_locations, contact_modes = self.step_gait(state, command)
@@ -358,6 +365,7 @@ class Trajectory_Generator:
         state.ticks += 1
         state.pitch = 0.0
         state.roll = 0.0
+        # state.height[:] = command.height
         state.height[:] = [command[0].height,
                            command[1].height,
                            command[2].height,

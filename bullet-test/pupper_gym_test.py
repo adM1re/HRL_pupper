@@ -109,7 +109,7 @@ class pupperGymEnvTest(gym.Env):
         if self._hard_rest:  # 是否强制重置
             self._pybullet_client.resetSimulation()
             pybullet.configureDebugVisualizer(pybullet.COV_ENABLE_GUI, 0)
-            pybullet.setGravity(0, 0, -9.81) # 设置重力
+            pybullet.setGravity(0, 0, -9.81)  # 设置重力
             self._robot_all_body_id = pybullet.loadMJCF(self._xml_path)  # 获取机器人编号
             self._robot_id = self._robot_all_body_id[0]  # 机器人主体编号
             self._pybullet_client.configureDebugVisualizer(
@@ -172,22 +172,44 @@ class pupperGymEnvTest(gym.Env):
                 "Control step time should be bigger than simulation step ")
         self.control_time_step = control_step
         self._time_step = simulation_step
-        self._action_repeat = int(round(control_step/simulation_step))
+        self._action_repeat = int(round(control_step / simulation_step))
         self._num_bullet_solver_iterations = (NUM_SIMULATION_ITERATION_STEPS /
                                               self._action_repeat)
 
 
 def main():
-    env = pupper_gym_env.pupperGymEnv(render=True,  task=1,   height_field=0, hard_reset=False)
+    env = pupper_gym_env.pupperGymEnv(render=True, task=1, height_field=0, hard_reset=False)
     env.reset()
-    action = [0.5, 0, 0,
-              0.5, 0, 0,
-              0.5, 0, 0,
-              0.5, 0, 0]
+    action = [0, 0.5, -1,
+              0, 0.5, -1,
+              0, 0.5, -1,
+              0, 0.5, -1]
+    action1 = [0.1, 0, 0]
+    action2 = [0.25, 0, 0]
+    action3 = [0.1, 0, 0]
+    action4 = [0.25, 0, 0]
+    last_loop = 0
+    env.pupper.fr_command.horizontal_velocity = action1[0:2]
+    env.pupper.fl_command.horizontal_velocity = action2[0:2]
+    env.pupper.br_command.horizontal_velocity = action3[0:2]
+    env.pupper.bl_command.horizontal_velocity = action4[0:2]
+    env.pupper.command = [env.pupper.fr_command, env.pupper.fl_command, env.pupper.br_command, env.pupper.bl_command]
+    print("111111horizontal_velocity:{}".format(env.pupper.fr_command.horizontal_velocity))
     while True:
-        env.step(action)
-        for _ in range(300):
-            env.reset()
+        now = time.time()
+        if now - last_loop >= 0.01:
+            # Check if we should transition to "deactivated"
+            # env.pupper.ResetPose()
+            # Step the controller forward by dt
+            env.pupper.TG.run(state=env.pupper.state, command=env.pupper.command)
+            env.pupper.foot_position2motor_angle(env.pupper.state.final_foot_locations)
+            pybullet.stepSimulation()
+            last_loop = now
+
+        # print("reset")
+        # env.pupper.reset_joint()
+
+    #   env.reset()
 
 
 if __name__ == '__main__':

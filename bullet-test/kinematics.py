@@ -67,7 +67,7 @@ def hip_relative_leg_ik(r_body_foot, leg_index, config):
     R_body_foot_yz = (y ** 2 + z ** 2) ** 0.5
 
     # Distance from the leg's forward/back point of rotation to the foot
-    R_hip_foot_yz = R_body_foot_yz  # (R_body_foot_yz ** 2 - config.abduction_offset ** 2) ** 0.5
+    R_hip_foot_yz = (R_body_foot_yz ** 2 - config.abduction_offset ** 2) ** 0.5
 
     # Interior angle of the right triangle formed in the y-z plane by the leg that is coincident to the ab/adduction axis
     # For feet 2 (front left) and 4 (back left), the abduction offset is positive, for the right feet, the abduction offset is negative.
