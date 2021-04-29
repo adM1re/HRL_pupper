@@ -16,11 +16,14 @@ INIT_MOTOR_ANGLE = [-0.1, 0.3, -1.2,
                     0.1, 0.3, -1.2,
                     -0.1, 0.8, -1.2,
                     0.1, 0.8, -1.2]
-
+INIT_MOTOR_ANGLE2 = [0.2, -2, 2,
+                     -0.2, 2, -2,
+                     0.2, -2, 2,
+                     -0.2, 2, -2]
 
 def main():
     env = pupper_gym_env.pupperGymEnv(render=True, task=1, height_field=0, hard_reset=False)
-    env.reset()
+    print(env.reset())
     action = [0.4, 0.2, 0,
               0.4, 0.3, 0,
               0.4, 0.2, 0,
@@ -37,30 +40,42 @@ def main():
     env.pupper.bl_command.horizontal_velocity = action4[0:2]
     env.pupper.command = [env.pupper.fr_command, env.pupper.fl_command, env.pupper.br_command, env.pupper.bl_command]
     env.pupper.ResetPose()
+    """joint_states = pybullet.getJointStates(env.pupper.body_id, env.pupper.joint_indices)
+    joint_pos = np.zeros(12)
+    joint_v = np.zeros(12)
+    joint_motor_torque = np.zeros(12)
+    for i in range(12):
+        joint_pos[i] = joint_states[i][0]
+        joint_v[i] = joint_states[i][1]
+        joint_motor_torque[i] = joint_states[i][3]
+    print(joint_pos)
+    print(joint_v)
+    print(joint_motor_torque)"""
     # Step the controller forward by dt
     # env.step(action)
-    """pybullet.setJointMotorControlArray(
+    pybullet.setJointMotorControlArray(
         bodyUniqueId=env.pupper.body_id,
         jointIndices=env.pupper.joint_indices,
         controlMode=pybullet.POSITION_CONTROL,
-        targetPositions=list(INIT_MOTOR_ANGLE),
+        targetPositions=list(INIT_MOTOR_ANGLE2),
         positionGains=[env.pupper.motor_kp] * 12,
         velocityGains=[env.pupper.motor_kv] * 12,
         forces=[env.pupper.motor_max_torque] * 12,
     )
     for _ in range(10):
-        env.pupper.ResetPose()"""
+        env.pupper.ResetPose()
     while True:
         now = time.time()
         if now - last_loop >= 0.01:
             # Check if we should transition to "deactivated"
-            # env.pupper.ResetPose()
+            env.pupper.ResetPose()
             # Step the controller forward by dt
-            env.step(action)
+            # env.step(action)
             # env.pupper.TG.run(state=env.pupper.state, command=env.pupper.command)
             # env.pupper.foot_position2motor_angle(env.pupper.state.final_foot_locations)
-            obs = env.pupper.GetObservation()
-            print(obs[0:3])
+
+            # obs = env.pupper.GetObservation()
+            # print(obs[0:3])
 
             pybullet.stepSimulation()
             last_loop = now

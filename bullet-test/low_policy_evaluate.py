@@ -34,7 +34,7 @@ def main():
     parse.add_argument("-p", "--policy", type=str, default="")
     parse.add_argument("-a", "--agent", type=int, default=0)
     args = parse.parse_args()
-    seed = 1
+    seed = 4
     seed = args.seed
     print("Seed:{}".format(seed))
     max_time_steps = 4e6
@@ -77,23 +77,7 @@ def main():
     else:
         print("Start New Training")
         print("Starting policy theta=", low_policy_agent.policy.theta)
-    num_processes = low_policy.nb_directions
-    processes = []
-    child_pipes = []
-    parent_pipes = []
-    for pr in range(num_processes):
-        parent_pipe, child_pipe = Pipe()
-        parent_pipes.append(parent_pipe)
-        child_pipes.append(child_pipe)
-    for rank in range(num_processes):
-        p = mp.Process(target=ExploreWorker,
-                       args=(rank,
-                             child_pipes[rank],
-                             env,
-                             args)
-                       )
-        p.start()
-        processes.append(p)
+
     print("Started Pupper Training Env")
     t = 0
     while t < (int(max_time_steps)):
@@ -129,13 +113,6 @@ def main():
         np.save(result_path + "/" + str(result_file_name) + "seed" + str(seed), result)
         # Save training model
         episode_num += 1
-
-    if args.mp:
-        for parent_pipe in parent_pipes:
-            parent_pipe.send([_CLOSE, "pay2"])
-
-        for p in processes:
-            p.join()
 
 
 if __name__ == '__main__':

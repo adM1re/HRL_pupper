@@ -66,7 +66,7 @@ class pupperGymEnv(gym.Env):
 
         self._is_render = render
         self.hard_reset = True
-        self.time_step = time_step
+        self.time_step = 1/240  # time_step
         self._env_step_counter = 0
         self._num_step_to_log = num_step_to_log
 
@@ -194,19 +194,15 @@ class pupperGymEnv(gym.Env):
             task1 aims to train pupper walking forward
             reward includes forward distance and loss for roll and pitch
         """
-        current_base_position = self.pupper.GetBasePosition()
-        # get observation
-        obs = self.pupper.GetObservation()
+        # get reward observation
+        pos, orn = self.pupper.Get_Base_PositionAndOrientation()
         done = self.is_reached_goal()
+        roll, pitch, yaw = self.pb.getEulerFromQuaternion([orn[0], orn[1], orn[2], orn[3]])
 
-        pos = obs[0:3]
-        roll = obs[3]
-        pitch = obs[4]
-        yaw = obs[5]
         forward_reward = pos[0]
         # penalty for nonzero roll, pitch
         rp_reward = -(abs(roll) + abs(pitch))
-        drift_reward = -abs(current_base_position[1])
+        drift_reward = -abs(pos[1])
         reward = (
                 self.drift_weight * drift_reward +
                 self.forward_weight * forward_reward +
