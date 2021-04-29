@@ -39,7 +39,7 @@ class pupperGymEnv(gym.Env):
                  num_step_to_log=10,
                  motor_kp=0.25,
                  motor_kv=0.5,
-                 motor_max_torque=10,
+                 motor_max_torque=1,
                  hard_reset=False,
                  time_step=0.01,
                  task=1,
@@ -66,7 +66,7 @@ class pupperGymEnv(gym.Env):
 
         self._is_render = render
         self.hard_reset = True
-        self.time_step = 1/240
+        self.time_step = time_step
         self._env_step_counter = 0
         self._num_step_to_log = num_step_to_log
 

@@ -12,16 +12,16 @@ import kinematics
 from kinematics import SimHardwareConfig
 
 INIT_POSITION = [0, 0, 0.3]
-INIT_POSITION2 = [0, 0, 0.17]
+INIT_POSITION2 = [0, 0, 0.22]
 INIT_ORIENTATION = [0, 0, 0, 1]
 INIT_MOTOR_POS = [[-0.2, 0, 1], [1.06, 0, 0], [-1.8, 0, 0],
                   [0.2, 0, -1], [1.06, 0, 0], [-1.8, 0, 0],
                   [-0.2, 0, 0], [1.06, 0, 0], [-1.8, 0, 0],
                   [0.2, 0, 0], [1.06, 0, 0], [-1.8, 0, 0]]
-INIT_MOTOR_ANGLE = [0, 0.5, -1,
-                    0, 0.5, -1,
-                    0, 0.5, -1,
-                    0, 0.5, -1]
+INIT_MOTOR_ANGLE = [-0.1, 0.3, -1.2,
+                    0.1, 0.3, -1.2,
+                    -0.1, 0.8, -1.2,
+                    0.1, 0.8, -1.2]
 
 class Pupper(object):
     def __init__(self,
@@ -46,7 +46,7 @@ class Pupper(object):
         self.motor_kv = motor_kv
         self.motor_max_torque = motor_max_torque
 
-        self.initial_position = INIT_POSITION
+        self.initial_position = INIT_POSITION2
         self.initial_orientation = INIT_ORIENTATION
 
         self._action_repeat = action_repeat
@@ -95,17 +95,17 @@ class Pupper(object):
         self.pb.resetBasePositionAndOrientation(self.body_id, self.initial_position, self.initial_orientation)
 
     def reset_joint(self):
-        for _ in range(20):
-            self.pb.resetBasePositionAndOrientation(self.body_id, self.initial_position, self.initial_orientation)
-            pybullet.setJointMotorControlArray(
-                bodyUniqueId=self.body_id,
-                jointIndices=self.joint_indices,
-                controlMode=pybullet.POSITION_CONTROL,
-                targetPositions=list(INIT_MOTOR_ANGLE),
-                positionGains=[self.motor_kp] * 12,
-                velocityGains=[self.motor_kv] * 12,
-                forces=[self.motor_max_torque] * 12,
-            )
+        pybullet.setJointMotorControlArray(
+            bodyUniqueId=self.body_id,
+            jointIndices=self.joint_indices,
+            controlMode=pybullet.POSITION_CONTROL,
+            targetPositions=list(INIT_MOTOR_ANGLE),
+            positionGains=[self.motor_kp] * 12,
+            velocityGains=[self.motor_kv] * 12,
+            forces=[self.motor_max_torque] * 12,
+        )
+        for _ in range(10):
+            pybullet.stepSimulation()
 
     def reset(self,
               reload_mjcf=True,
@@ -280,16 +280,16 @@ class Pupper(object):
 
     def action_limit(self, action):
         action[0] = np.clip(action[0], -self.x_length, self.x_length)
-        action[1] = np.clip(action[1], self.y_length, -self.y_length)
+        action[1] = 0  # np.clip(action[1], self.y_length, -self.y_length)
         action[2] = np.clip(action[2], self.h_length, -0.08)
         action[3] = np.clip(action[3], -self.x_length, self.x_length)
-        action[4] = np.clip(action[4], self.y_length, -self.y_length)
+        action[4] = 0  # np.clip(action[4], self.y_length, -self.y_length)
         action[5] = np.clip(action[5], self.h_length, -0.08)
         action[6] = np.clip(action[6], -self.x_length, self.x_length)
-        action[7] = np.clip(action[7], self.y_length, -self.y_length)
+        action[7] = 0  # np.clip(action[7], self.y_length, -self.y_length)
         action[8] = np.clip(action[8], self.h_length, -0.08)
         action[9] = np.clip(action[9], -self.x_length, self.x_length)
-        action[10] = np.clip(action[10], self.y_length, -self.y_length)
+        action[10] = 0  # np.clip(action[10], self.y_length, -self.y_length)
         action[11] = np.clip(action[11], self.h_length, -0.08)
         return action
 

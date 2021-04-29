@@ -34,7 +34,7 @@ def main():
     parse.add_argument("-p", "--policy", type=str, default="")
     parse.add_argument("-a", "--agent", type=int, default=0)
     args = parse.parse_args()
-    seed = 5
+    seed = 1
     seed = args.seed
     print("Seed:{}".format(seed))
     max_time_steps = 4e6
@@ -46,7 +46,7 @@ def main():
         os.makedirs(model_path)
     task_no = args.task
 
-    env = pupperGymEnv(render=False,
+    env = pupperGymEnv(render=True,
                        task=task_no,
                        height_field=0)
     env.seed(seed)
@@ -97,11 +97,8 @@ def main():
     print("Started Pupper Training Env")
     t = 0
     while t < (int(max_time_steps)):
-        # episode_reward, episode_time_steps = low_policy_agent.train_parallel(parent_pipes) episode_reward,
-        episode_reward, episode_time_steps = train_parallel(env=env, policy=policy, normalizer=normalizer,
-                                                            hp=low_policy, parent_pipes=parent_pipes, args=args)
-        # episode_reward, episode_time_steps = explore(env=env, policy=policy, normalizer=normalizer, direction=None,
-        #                                             delta=None, low_policy=low_policy)
+        episode_reward, episode_time_steps = explore(env=env, policy=policy, normalizer=normalizer, direction=None,
+                                                     delta=None, low_policy=low_policy)
         t += episode_time_steps
         print(
             "Total T: {} Episode Num: {} Episode T: {} Reward: {:.2f} REWARD PER STEP: {:.2f}".format(
@@ -132,11 +129,6 @@ def main():
         np.save(result_path + "/" + str(result_file_name) + "seed" + str(seed), result)
         # Save training model
         episode_num += 1
-
-        if (episode_num + 1) % eval_freq == 0:
-            if save_model:
-                np.save(model_path + "/" + model_file_name + str(agent_num) + "seed" + str(seed) + ".npy",
-                        low_policy_agent.policy.theta)
 
     if args.mp:
         for parent_pipe in parent_pipes:
