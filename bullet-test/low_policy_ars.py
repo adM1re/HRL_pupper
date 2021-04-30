@@ -42,8 +42,8 @@ def main():
     save_model = True
     if not os.path.exists(result_path):
         os.makedirs(result_path)
-    if not os.path.exists(model_path):
-        os.makedirs(model_path)
+    if not os.path.exists(model_path + "/" + str(seed)):
+        os.makedirs(model_path + "/" + str(seed))
     task_no = args.task
 
     env = pupperGymEnv(render=False,
@@ -69,10 +69,10 @@ def main():
     policy = Policy(state_dim, action_dim)
     low_policy_agent = Agent(env, policy, low_policy, normalizer)
     agent_num = 0
-    if os.path.exists(model_path + "/" + model_file_name + str(agent_num) + "seed" + str(seed) + ".npy"):
+    if os.path.exists(model_path + "/" + str(seed) + "/" + model_file_name + "agent" + str(agent_num) + ".npy"):
         print("Loading Existing agent:")
-        print(model_path + "/" + model_file_name + str(agent_num) + "seed" + str(seed) + ".npy")
-        low_policy_agent.np_load(model_path + "/" + model_file_name + str(agent_num) + "seed" + str(seed) + ".npy")
+        print(model_path + "/" + str(seed) + "/" + model_file_name + "agent" + str(agent_num) + ".npy")
+        low_policy_agent.np_load(model_path + "/" + str(seed) + "/" + model_file_name + "agent" + str(agent_num) + ".npy")
         print("Starting policy theta=", low_policy_agent.policy.theta)
     else:
         print("Start New Training")
@@ -135,7 +135,7 @@ def main():
 
         if (episode_num + 1) % eval_freq == 0:
             if save_model:
-                np.save(model_path + "/" + model_file_name + str(agent_num) + "seed" + str(seed) + ".npy",
+                np.save(model_path + "/" + str(seed) + "/" + model_file_name + "agent" + str(episode_num) + ".npy",
                         low_policy_agent.policy.theta)
 
     if args.mp:

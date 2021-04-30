@@ -24,10 +24,10 @@ INIT_MOTOR_ANGLE2 = [0.2, -2, 2,
 def main():
     env = pupper_gym_env.pupperGymEnv(render=True, task=1, height_field=0, hard_reset=False)
     print(env.reset())
-    action = [0.4, 0,
-              0.4, 0,
-              0.4, 0,
-              0.4, 0]
+    action = [0.4, 0.7,
+              0.4, -0.2,
+              0.4, -0.2,
+              0.4, -0.2]
     action1 = [0.5, 0, 0.5]
     action2 = [0.5, 0, 0.5]
     action3 = [0.5, 0, 0.5]

@@ -41,7 +41,7 @@ class LowPolicy(object):
         self.episode_length = 5000
         self.learning_rate = 0.05
         self.nb_directions = 16
-        self.nb_best_directions = 8
+        self.nb_best_directions = 16
         assert self.nb_best_directions <= self.nb_directions
         self.noise = 0.02
         # self.env = None
@@ -255,11 +255,11 @@ class Agent(object):
         # print('Step:', step, 'Reward:', reward_evaluation)
         return reward_evaluation, num_plays
 
-    def save(self, filename):
+    def save(self, filename, data):
         with open(filename, 'wb') as filehandle:
-            pickle.dump(self.policy.theta, filehandle)
+            pickle.dump(data, filehandle)
 
-    def load(self, filename):
+    def load(self, filename, data):
         with open(filename, 'rb') as filehandle:
             self.policy.theta = pickle.load(filehandle)
 

@@ -15,7 +15,7 @@ from ars_lib.ars import *
 _RESET = 1
 _CLOSE = 2
 _EXPLORE = 3
-result_file_name = "low_policy_result"
+result_file_name = "low_policy_evaluate_result"
 result_path = "result"
 model_path = "model"
 model_file_name = "low_policy_trained"
@@ -34,7 +34,7 @@ def main():
     parse.add_argument("-p", "--policy", type=str, default="")
     parse.add_argument("-a", "--agent", type=int, default=0)
     args = parse.parse_args()
-    seed = 4
+    seed = 13
     seed = args.seed
     print("Seed:{}".format(seed))
     max_time_steps = 4e6
@@ -80,6 +80,10 @@ def main():
 
     print("Started Pupper Training Env")
     t = 0
+    try:
+        result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed) + ".npy")
+    except Exception as e:
+        print("No trained result")
     while t < (int(max_time_steps)):
         episode_reward, episode_time_steps = explore(env=env, policy=policy, normalizer=normalizer, direction=None,
                                                      delta=None, low_policy=low_policy)
@@ -99,7 +103,7 @@ def main():
                     [[episode_reward, episode_reward / float(episode_time_steps)]]
                 )
             else:
-                result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed))
+                result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed) + ".npy")
                 new_result = np.array(
                     [[episode_reward, episode_reward / float(episode_time_steps)]]
                 )
@@ -110,7 +114,7 @@ def main():
             )
             result = np.concatenate((result, new_result))
         # Save training result
-        np.save(result_path + "/" + str(result_file_name) + "seed" + str(seed), result)
+        np.save(result_path + "/" + str(result_file_name) + "seed" + str(seed) + ".npy", result)
         # Save training model
         episode_num += 1
 

@@ -1,6 +1,7 @@
 import pybullet as p
 import time
 import pybullet_data
+import numpy as np
 
 useDeepLocoCSV = 2
 useAdmireCSV = 3
@@ -61,14 +62,19 @@ if show_ground:
     print("pupper_ground:")
     print(pupper_ground)
     p.resetBasePositionAndOrientation(pupper_ground, [-11, 0, -0.1], [1, 1, 1, 1])
-
+# result = np.load("0result/l00ow_policy_resultseed2.npy")
+# print(result)
+try:
+    result = np.load("result/low_policy_resultseed4.npy")
+except Exception as e:
+    print("no file")
 # p.loadURDF("sphere_small.urdf")
 # p.loadURDF("plane.urdf")
 # p.loadURDF("table/table.urdf")
 p.configureDebugVisualizer(p.DIRECT, 0)
 for num in range(-1, num_joints):
     inertia = p.getDynamicsInfo(bodyids, num)[0]
-    print(inertia)
+    # print(inertia)
 # p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
 while (p.isConnected()):
     p.stepSimulation()

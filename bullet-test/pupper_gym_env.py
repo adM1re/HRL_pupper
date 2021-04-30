@@ -87,9 +87,7 @@ class pupperGymEnv(gym.Env):
             self._pybullet_client = bullet_client.BulletClient(connection_mode=pybullet.GUI)
         else:
             self._pybullet_client = bullet_client.BulletClient()
-        self.pb.setGravity(0, 0, -9.81)
-        self.pb.setPhysicsEngineParameter(enableConeFriction=0)
-        self.pb.setPhysicsEngineParameter(numSolverIterations=20)
+        self.pb.setGravity(0, 0, -9.8)
         self.seed()
         self.reset()
         self.height_field = height_field

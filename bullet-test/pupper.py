@@ -12,7 +12,7 @@ import kinematics
 from kinematics import SimHardwareConfig
 import time
 
-INIT_POSITION = [0, 0, 0.3]
+INIT_POSITION = [0, 0, 0.4]
 INIT_POSITION2 = [0, 0, 0.2]
 INIT_ORIENTATION = [0, 0, 0, 1]
 INIT_MOTOR_POS = [[-0.2, 0, 1], [1.06, 0, 0], [-1.8, 0, 0],
@@ -27,7 +27,7 @@ INIT_MOTOR_ANGLE = [-0.1, 0.3, -1.2,
 class Pupper(object):
     def __init__(self,
                  pybullet_client,
-                 action_repeat=10,
+                 action_repeat=1,
                  time_step=0.01,
                  motor_kp=0,
                  motor_kv=0,
@@ -81,9 +81,9 @@ class Pupper(object):
                              self.br_command,
                              self.bl_command]
         self.init_state = self.state
-        self.x_length = 0.3
+        self.x_length = 1
         self.y_length = 0
-        self.h_length = -0.2
+        self.h_length = -0.12
         self.joint_pos_bound = 2
 
     def HeightField(self, hf, hf_no):
@@ -106,8 +106,10 @@ class Pupper(object):
             velocityGains=[self.motor_kv] * 12,
             forces=[self.motor_max_torque] * 12,
         )
-        for _ in range(10):
+        for _ in range(20):
             pybullet.stepSimulation()
+            self.pb.resetBasePositionAndOrientation(self.body_id, INIT_POSITION2, self.initial_orientation)
+            time.sleep(6/240)
 
     def reset(self,
               reload_mjcf=True,
@@ -171,7 +173,7 @@ class Pupper(object):
                 """
         upper_bound = np.array([0.0] * self.GetObservationDimension())
         # joint pos bound
-        upper_bound[:] = self.joint_pos_bound
+        upper_bound[:] = np.pi
         return upper_bound
 
     def GetObservationLowerBound(self):
@@ -182,26 +184,31 @@ class Pupper(object):
 
     def GetObservation(self):
         observation = []
-        joint_states = pybullet.getJointStates(self.body_id, self.joint_indices)
+        pos, orn = self.Get_Base_PositionAndOrientation()
+        roll, pitch, yaw = self.pb.getEulerFromQuaternion([orn[0], orn[1], orn[2], orn[3]])
+        observation.append(roll)
+        observation.append(pitch)
+        observation.append(yaw)
+        """joint_states = pybullet.getJointStates(self.body_id, self.joint_indices)
         # joint_pos = np.zeros(12)
         # joint_v = np.zeros(12)
         # joint_motor_torque = np.zeros(12)
         for i in range(12):
             observation.append(joint_states[i][0])
             # joint_v[i] = joint_states[i][1]
-            # joint_motor_torque[i] = joint_states[i][3]
+            # joint_motor_torque[i] = joint_states[i][3]"""
         return observation
 
     def GetActionUpperBound(self):
         upper_bound = np.array([0.0] * self.GetActionDimension())
         upper_bound[0] = self.x_length
-        upper_bound[1] = -0.1
+        upper_bound[1] = self.x_length
         upper_bound[2] = self.x_length
-        upper_bound[3] = -0.1
-        upper_bound[4] = self.x_length
+        upper_bound[3] = self.x_length
+        """upper_bound[4] = self.x_length
         upper_bound[5] = -0.1
         upper_bound[6] = self.x_length
-        upper_bound[7] = -0.1
+        upper_bound[7] = -0.1"""
 
         """upper_bound[3] = self.x_length
         upper_bound[4] = self.y_length
@@ -216,14 +223,14 @@ class Pupper(object):
 
     def GetActionLowerBound(self):
         low_bound = np.array([0.0] * self.GetActionDimension())
-        low_bound[0] = -self.x_length
-        low_bound[1] = self.h_length
-        low_bound[2] = -self.x_length
-        low_bound[3] = -self.x_length
-        low_bound[4] = -self.x_length
+        low_bound[0] = 0.1  # -self.x_length
+        low_bound[1] = 0.1  # -self.x_length
+        low_bound[2] = 0.1  # -self.x_length
+        low_bound[3] = 0.1  # -self.x_length
+        """low_bound[4] = -self.x_length
         low_bound[5] = self.h_length
         low_bound[6] = -self.x_length
-        low_bound[7] = self.h_length
+        low_bound[7] = self.h_length"""
         """low_bound[4] = -self.y_length
         low_bound[5] = self.h_length
         low_bound[6] = -self.x_length
@@ -242,27 +249,27 @@ class Pupper(object):
         br_command = command(self._TG_config.default_z_ref)
         action.append(fr_command.horizontal_velocity[0])
         # action.append(fr_command.horizontal_velocity[1])
-        action.append(fr_command.height)
+        # action.append(fr_command.height)
         action.append(fl_command.horizontal_velocity[0])
         # action.append(fl_command.horizontal_velocity[1])
-        action.append(fl_command.height)
+        # action.append(fl_command.height)
         action.append(br_command.horizontal_velocity[0])
         # action.append(br_command.horizontal_velocity[1])
-        action.append(br_command.height)
+        # action.append(br_command.height)
         action.append(bl_command.horizontal_velocity[0])
         # action.append(bl_command.horizontal_velocity[1])
-        action.append(bl_command.height)
+        # action.append(bl_command.height)
         return len(action)
 
     def transformAction2Command(self, action):
         self.fr_command.horizontal_velocity[0] = action[0]
-        self.fr_command.height = action[1]
-        self.fl_command.horizontal_velocity[0] = action[2]
-        self.fl_command.height = action[3]
-        self.br_command.horizontal_velocity[0] = action[4]
-        self.br_command.height = action[5]
-        self.bl_command.horizontal_velocity[0] = action[6]
-        self.bl_command.height = action[7]
+        self.fr_command.height = -0.15  # action[1]
+        self.fl_command.horizontal_velocity[0] = action[1]
+        self.fl_command.height = -0.15  # action[1]
+        self.br_command.horizontal_velocity[0] = action[2]
+        self.br_command.height = -0.15  # action[1]
+        self.bl_command.horizontal_velocity[0] = action[3]
+        self.bl_command.height = -0.15  # action[1]
         return [self.fr_command,
                 self.fl_command,
                 self.br_command,
@@ -290,14 +297,14 @@ class Pupper(object):
         )
 
     def action_limit(self, action):
-        action[0] = np.clip(action[0], -self.x_length, self.x_length)
-        action[1] = np.clip(action[1], self.h_length, -0.1)
-        action[2] = np.clip(action[2], -self.x_length, self.x_length)
-        action[3] = np.clip(action[3], self.h_length, -0.1)
-        action[4] = np.clip(action[4], -self.x_length, self.x_length)
+        action[0] = np.clip(action[0], 0, self.x_length)
+        action[1] = np.clip(action[1], 0, self.x_length)
+        action[2] = np.clip(action[2], 0, self.x_length)
+        action[3] = np.clip(action[3], 0, self.x_length)
+        """action[4] = np.clip(action[4], -self.x_length, self.x_length)
         action[5] = np.clip(action[5], self.h_length, -0.1)
         action[6] = np.clip(action[6], -self.x_length, self.x_length)
-        action[7] = np.clip(action[7], self.h_length, -0.1)
+        action[7] = np.clip(action[7], self.h_length, -0.1)"""
 
         """action[3] = np.clip(action[3], -self.x_length, self.x_length)
         action[4] = 0  # np.clip(action[4], self.y_length, -self.y_length)
@@ -312,6 +319,7 @@ class Pupper(object):
 
     def ApplyAction(self, action):
         # action include :  [[forward_step_length, lateral_length, single_height]*4]
+        # print(action[0])
         action = self.action_limit(action)
         self.command = self.transformAction2Command(action)
         self.TG.run(self.state, self.command)
