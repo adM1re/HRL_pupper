@@ -9,7 +9,7 @@ import yaml
 # state
 class TG_State:
     def __init__(self):
-        self.horizontal_velocity = np.array([0.0, 0.0])
+        self.horizontal_velocity = [0.0, 0.0]
         self.yaw_rate = 0.0
         self.height = np.zeros(4)
         self.pitch = 0.0
@@ -26,7 +26,7 @@ class TG_State:
 
 class command:
     def __init__(self, height):
-        self.horizontal_velocity = np.array([0, 0])
+        self.horizontal_velocity = [0, 0]
         self.yaw_rate = 0.0
         self.height = height
         self.pitch = 0.0
@@ -355,7 +355,6 @@ class Trajectory_Generator:
                 new_location = self.swing_controller.next_foot_location(
                     swing_proportion, leg_index, state, command[leg_index]
                 )
-            # print(new_location)
             new_foot_locations[:, leg_index] = new_location
         return new_foot_locations, contact_modes
 
