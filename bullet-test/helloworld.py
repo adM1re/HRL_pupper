@@ -5,7 +5,7 @@ import pybullet_data
 useDeepLocoCSV = 2
 useAdmireCSV = 3
 heightfieldSource = 0
-physicsClient = p.connect(p.GUI)
+physicsClient = p.connect(p.DIRECT)
 # or p.DIRECT for non-graphical version
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0)
@@ -65,8 +65,11 @@ if show_ground:
 # p.loadURDF("sphere_small.urdf")
 # p.loadURDF("plane.urdf")
 # p.loadURDF("table/table.urdf")
-p.configureDebugVisualizer(p.GUI, 0)
-p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
+p.configureDebugVisualizer(p.DIRECT, 0)
+for num in range(-1, num_joints):
+    inertia = p.getDynamicsInfo(bodyids, num)[0]
+    print(inertia)
+# p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
 while (p.isConnected()):
     p.stepSimulation()
     # now_position, now_orientation = p.getBasePositionAndOrientation(bodyids)

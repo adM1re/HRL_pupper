@@ -10,9 +10,10 @@ from trajectory_generator import Configuration
 from trajectory_generator import TG_State
 import kinematics
 from kinematics import SimHardwareConfig
+import time
 
 INIT_POSITION = [0, 0, 0.3]
-INIT_POSITION2 = [0, 0, 0.22]
+INIT_POSITION2 = [0, 0, 0.2]
 INIT_ORIENTATION = [0, 0, 0, 1]
 INIT_MOTOR_POS = [[-0.2, 0, 1], [1.06, 0, 0], [-1.8, 0, 0],
                   [0.2, 0, -1], [1.06, 0, 0], [-1.8, 0, 0],
@@ -20,13 +21,13 @@ INIT_MOTOR_POS = [[-0.2, 0, 1], [1.06, 0, 0], [-1.8, 0, 0],
                   [0.2, 0, 0], [1.06, 0, 0], [-1.8, 0, 0]]
 INIT_MOTOR_ANGLE = [-0.1, 0.3, -1.2,
                     0.1, 0.3, -1.2,
-                    -0.1, 0.8, -1.2,
-                    0.1, 0.8, -1.2]
+                    -0.1, 0.3, -1.2,
+                    0.1, 0.3, -1.2]
 
 class Pupper(object):
     def __init__(self,
                  pybullet_client,
-                 action_repeat=1,
+                 action_repeat=10,
                  time_step=0.01,
                  motor_kp=0,
                  motor_kv=0,
@@ -82,7 +83,7 @@ class Pupper(object):
         self.init_state = self.state
         self.x_length = 0.3
         self.y_length = 0
-        self.h_length = -0.23
+        self.h_length = -0.2
         self.joint_pos_bound = 2
 
     def HeightField(self, hf, hf_no):
@@ -137,6 +138,7 @@ class Pupper(object):
             self.ResetPose()
             self.reset_joint()
         self._step_counter = 0
+        time.sleep(1/240)
 
         """self._observation_history.clear()
         if reset_time > 0.0 and default_motor_angles is not None:
@@ -332,22 +334,6 @@ class Pupper(object):
             # print("step")
             self.ApplyAction(action)
             # self.ApplyAction2(action)
+            time.sleep(1/240)
             self.pb.stepSimulation()
             self._step_counter += 1
-
-    def GetTimeSinceReset(self):
-        return self._step_counter * self.time_step
-
-    """def RealisticObservation(self):
-        """"""Receive the observation from sensors.
-
-        This function is called once per step. The observations are only updated
-        when this function is called.
-        """"""
-        self._observation_history.appendleft(self.GetObservation())
-        self._control_observation = self._GetDelayedObservation(
-            self._control_latency)
-        self._control_observation = self._AddSensorNoise(
-            self._control_observation, self._observation_noise_stdev)
-        return self._control_observation
-"""

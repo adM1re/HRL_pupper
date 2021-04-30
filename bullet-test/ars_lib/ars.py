@@ -43,7 +43,7 @@ class LowPolicy(object):
         self.nb_directions = 16
         self.nb_best_directions = 8
         assert self.nb_best_directions <= self.nb_directions
-        self.noise = 0.03
+        self.noise = 0.02
         # self.env = None
         self.env_name = "pupper_low_policy"
 
@@ -281,8 +281,8 @@ def explore(env, normalizer, policy, direction, delta, low_policy):
         # reward = max(min(reward, 1), -1)
         sum_rewards += reward
         num_plays += 1
-    obs = env.pupper.GetObservation()
-    print(obs)
+    pos = env.pupper.GetBasePosition()
+    print(pos)
     return sum_rewards, num_plays
 
 

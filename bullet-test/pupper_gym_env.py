@@ -39,7 +39,7 @@ class pupperGymEnv(gym.Env):
                  num_step_to_log=10,
                  motor_kp=0.25,
                  motor_kv=0.5,
-                 motor_max_torque=1,
+                 motor_max_torque=10,
                  hard_reset=False,
                  time_step=0.01,
                  task=1,
@@ -87,7 +87,9 @@ class pupperGymEnv(gym.Env):
             self._pybullet_client = bullet_client.BulletClient(connection_mode=pybullet.GUI)
         else:
             self._pybullet_client = bullet_client.BulletClient()
-        self.pb.setGravity(0, 0, -9.8)
+        self.pb.setGravity(0, 0, -9.81)
+        self.pb.setPhysicsEngineParameter(enableConeFriction=0)
+        self.pb.setPhysicsEngineParameter(numSolverIterations=20)
         self.seed()
         self.reset()
         self.height_field = height_field
