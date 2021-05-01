@@ -27,7 +27,7 @@ INIT_MOTOR_ANGLE = [-0.1, 0.3, -1.2,
 class Pupper(object):
     def __init__(self,
                  pybullet_client,
-                 action_repeat=1,
+                 action_repeat=4,
                  time_step=0.01,
                  motor_kp=0,
                  motor_kv=0,

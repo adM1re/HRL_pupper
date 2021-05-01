@@ -38,10 +38,10 @@ class LowPolicy(object):
 
     def __init__(self):
         self.nb_steps = 10000
-        self.episode_length = 5000
+        self.episode_length = 1250
         self.learning_rate = 0.05
         self.nb_directions = 16
-        self.nb_best_directions = 16
+        self.nb_best_directions = 8
         assert self.nb_best_directions <= self.nb_directions
         self.noise = 0.06
         # self.env = None
