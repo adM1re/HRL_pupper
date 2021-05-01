@@ -81,7 +81,8 @@ def main():
     print("Started Pupper Training Env")
     t = 0
     try:
-        result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed) + ".npy")
+        result = np.load(result_path + "/low_policy_resultseed" + str(seed) + ".npy")
+        er = 0
     except Exception as e:
         er = 1
         print("No trained result")
@@ -99,12 +100,11 @@ def main():
             )
         )
         if episode_num == 0:
-            if agent_num == 0 or er == 1:
+            if er == 1:
                 result = np.array(
                     [[episode_reward, episode_reward / float(episode_time_steps)]]
                 )
             else:
-                result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed) + ".npy")
                 new_result = np.array(
                     [[episode_reward, episode_reward / float(episode_time_steps)]]
                 )
