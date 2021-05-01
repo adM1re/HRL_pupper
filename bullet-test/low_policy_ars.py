@@ -96,6 +96,7 @@ def main():
         processes.append(p)
     try:
         result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed) + ".npy")
+        er = 0
     except Exception as e:
         er = 1
         print("No trained result")
@@ -111,7 +112,7 @@ def main():
         print(
             "Total T: {} Episode Num: {} Episode T: {} Reward: {:.2f} REWARD PER STEP: {:.2f}".format(
                 t + 1,
-                episode_num,
+                agent_num,
                 episode_time_steps,
                 episode_reward,
                 episode_reward / float(episode_time_steps)
@@ -123,7 +124,7 @@ def main():
                     [[episode_reward, episode_reward / float(episode_time_steps)]]
                 )
             else:
-                result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed))
+                result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed) + ".npy")
                 new_result = np.array(
                     [[episode_reward, episode_reward / float(episode_time_steps)]]
                 )
@@ -134,13 +135,13 @@ def main():
             )
             result = np.concatenate((result, new_result))
         # Save training result
-        np.save(result_path + "/" + str(result_file_name) + "seed" + str(seed), result)
+        np.save(result_path + "/" + str(result_file_name) + "seed" + str(seed) + ".npy", result)
         # Save training model
         episode_num += 1
-
+        agent_num += 1
         if (episode_num + 1) % eval_freq == 0:
             if save_model:
-                np.save(model_path + "/" + str(seed) + "/" + model_file_name + "agent" + str(episode_num) + ".npy",
+                np.save(model_path + "/" + str(seed) + "/" + model_file_name + "agent" + str(agent_num) + ".npy",
                         low_policy_agent.policy.theta)
 
     if args.mp:
