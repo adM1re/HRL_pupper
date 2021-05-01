@@ -38,7 +38,7 @@ class LowPolicy(object):
 
     def __init__(self):
         self.nb_steps = 10000
-        self.episode_length = 1250
+        self.episode_length = 2500
         self.learning_rate = 0.05
         self.nb_directions = 16
         self.nb_best_directions = 8
@@ -281,8 +281,10 @@ def explore(env, normalizer, policy, direction, delta, low_policy):
         # reward = max(min(reward, 1), -1)
         sum_rewards += reward
         num_plays += 1
-    pos = env.pupper.GetBasePosition()
+    pos, orn = env.pupper.Get_Base_PositionAndOrientation()
+    roll, pitch, yaw = env.pb.getEulerFromQuaternion([orn[0], orn[1], orn[2], orn[3]])
     print(pos)
+    print(roll, pitch, yaw)
     return sum_rewards, num_plays
 
 
