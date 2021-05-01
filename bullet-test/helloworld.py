@@ -15,7 +15,7 @@ p.setGravity(0, 0, -9.8)
 numHeightfieldRows = 16
 numHeightfieldColumns = 16
 show_pupper = 1
-show_ground = 0
+show_ground = 1
 if heightfieldSource == useDeepLocoCSV:
   terrainShape = p.createCollisionShape(shapeType=p.GEOM_HEIGHTFIELD,
                                         meshScale=[.5, .5, 2.5],
@@ -64,10 +64,10 @@ if show_ground:
     p.resetBasePositionAndOrientation(pupper_ground, [-11, 0, -0.1], [1, 1, 1, 1])
 # result = np.load("0result/l00ow_policy_resultseed2.npy")
 # print(result)
-try:
-    result = np.load("result/low_policy_resultseed4.npy")
-except Exception as e:
-    print("no file")
+# try:
+#     result = np.load("result/low_policy_resultseed4.npy")
+# except Exception as e:
+#     print("no file")
 # p.loadURDF("sphere_small.urdf")
 # p.loadURDF("plane.urdf")
 # p.loadURDF("table/table.urdf")

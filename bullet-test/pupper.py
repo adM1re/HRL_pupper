@@ -66,6 +66,7 @@ class Pupper(object):
         # enable rough terrain or not
         self._height_field = height_field
         self._height_field_No = height_field_no
+        self._height_field_id = None
         #
         self.sim_hardware_config = SimHardwareConfig()
         self._TG_config = Configuration.from_yaml("controller_config.yaml")
@@ -89,9 +90,11 @@ class Pupper(object):
     def HeightField(self, hf, hf_no):
         if hf:
             if hf_no == 1:
-                self.pb.loadURDF(self.file_root + "ground_test1.urdf")
+                self._height_field_id = self.pb.loadURDF(self.file_root + "/ground_test.urdf")
+                print("load steep")
+                pybullet.resetBasePositionAndOrientation(self._height_field_id, [8.5, 0, -0.2], [1, 1, 1, 1])
             elif hf_no == 2:
-                self.pb.loadURDF(self.file_root + "ground_test2.urdf")
+                self._height_field_id = self.pb.loadURDF(self.file_root + "ground_test2.urdf")
 
     def ResetPose(self):
         self.pb.resetBasePositionAndOrientation(self.body_id, self.initial_position, self.initial_orientation)

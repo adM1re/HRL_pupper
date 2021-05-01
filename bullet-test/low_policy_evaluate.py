@@ -40,6 +40,10 @@ def main():
     max_time_steps = 4e6
     eval_freq = 1
     save_model = True
+    task_no = args.task
+    if task_no != 1:
+        model_path = "model" + str(task_no)
+        result_path = "result" + str(task_no)
     if not os.path.exists(result_path):
         os.makedirs(result_path)
     if not os.path.exists(model_path):
@@ -48,7 +52,7 @@ def main():
 
     env = pupperGymEnv(render=True,
                        task=task_no,
-                       height_field=0)
+                       height_field=True)
     env.seed(seed)
     np.random.seed(seed)
     state_dim = env.observation_space.shape[0]

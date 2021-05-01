@@ -33,7 +33,7 @@ class pupperGymEnv(gym.Env):
                  file_root=pybullet_data.getDataPath(),
                  num_steps_to_log=1000,
                  log_path=None,
-                 forward_weight=10.0,
+                 forward_weight=5.0,
                  rp_wight=2.0,
                  drift_weight=1.0,
                  num_step_to_log=10,
@@ -43,7 +43,7 @@ class pupperGymEnv(gym.Env):
                  hard_reset=False,
                  time_step=0.01,
                  task=1,
-                 height_field=False,
+                 height_field=1,
                  height_field_no=1,
                  distance_limit=50
                  ):
@@ -63,7 +63,9 @@ class pupperGymEnv(gym.Env):
         self.target_yaw = np.pi/4
         self.task1_total_reward = 0
         self.task2_total_reward = 0
-
+        self.task3_total_reward = 0
+        self.task1_target_rpy = [0, 0, -90]
+        self.task2_target_rpy = [0, 4, -90]
         self._is_render = render
         self.hard_reset = True
         self.time_step = 1/240  # time_step
@@ -120,8 +122,6 @@ class pupperGymEnv(gym.Env):
             self.pb.setTimeStep(self.time_step)
             # self.ground_id = self.pb.loadURDF(self._file_root + "/plane.urdf")
             self.pupper = Pupper(pybullet_client=self.pb,
-                                 height_field=False,
-                                 height_field_no=1,
                                  file_root=self._file_root,
                                  motor_kp=self._motor_kp,
                                  motor_kv=self._motor_kv,
@@ -156,9 +156,11 @@ class pupperGymEnv(gym.Env):
         if self.task == 1:
             reward = self.task1_reward()
         elif self.task == 2:
-            task2_reward = self.task2_reward()
-            self.task2_total_reward += task2_reward
-            reward = self.task2_total_reward
+            reward = self.task2_reward()
+        elif self.task == 3:
+            task3_reward = self.task3_reward()
+            self.task3_total_reward += task3_reward
+            reward = self.task3_total_reward
         else:
             reward = -1000
             print("Plz set task!")
@@ -201,20 +203,45 @@ class pupperGymEnv(gym.Env):
 
         forward_reward = pos[0]
         # penalty for nonzero roll, pitch
-        rp_reward = -(abs(roll) + abs(pitch))
-        yaw_reward = -(abs(yaw))
+        rpy_reward = -(abs(self.task1_target_rpy[0] - roll) +
+                       abs(self.task1_target_rpy[1] - pitch) +
+                       abs(self.task1_target_rpy[2] - yaw))
         drift_reward = -abs(pos[1])
         reward = (
                 self.drift_weight * drift_reward +
                 self.forward_weight * forward_reward +
-                self.rp_weight * rp_reward +
-                self.rp_weight * yaw_reward
+                self.rp_weight * rpy_reward
         )
         if done:
             reward += 1000
         return reward
 
     def task2_reward(self):
+        """task2 for low policy training
+                    task2 aims to train pupper walking on steep ground
+                    reward includes forward distance and loss for roll(0) pitch(4.00) yaw(-90)
+        """
+        # get reward observation
+        pos, orn = self.pupper.Get_Base_PositionAndOrientation()
+        done = self.is_reached_goal()
+        roll, pitch, yaw = self.pb.getEulerFromQuaternion([orn[0], orn[1], orn[2], orn[3]])
+
+        forward_reward = pos[0]
+        # penalty for nonzero roll, pitch
+        rpy_reward = -(abs(self.task2_target_rpy[0] - roll) +
+                       abs(self.task2_target_rpy[1] - pitch) +
+                       abs(self.task2_target_rpy[2] - yaw))
+        drift_reward = -abs(pos[1])
+        reward = (
+                self.drift_weight * drift_reward +
+                self.forward_weight * forward_reward +
+                self.rp_weight * rpy_reward
+        )
+        if done:
+            reward += 1000
+        return reward
+
+    def task3_reward(self):
         obs = self.pupper.GetObservation()
         current_pos = obs[0:3]
         target_pos = self.target_position

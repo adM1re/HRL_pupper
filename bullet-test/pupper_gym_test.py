@@ -22,7 +22,7 @@ INIT_MOTOR_ANGLE2 = [0.2, -2, 2,
                      -0.2, 2, -2]
 
 def main():
-    env = pupper_gym_env.pupperGymEnv(render=True, task=1, height_field=0, hard_reset=False)
+    env = pupper_gym_env.pupperGymEnv(render=False, task=2, height_field=1, hard_reset=False)
     print(env.reset())
     action = [0.4, 0.7,
               0.4, -0.2,
@@ -33,11 +33,6 @@ def main():
     action3 = [0.5, 0, 0.5]
     action4 = [0.5, 0, 0.5]
     last_loop = 0
-    env.pupper.fr_command.horizontal_velocity = action1[0:2]
-    env.pupper.fl_command.horizontal_velocity = action2[0:2]
-    env.pupper.br_command.horizontal_velocity = action3[0:2]
-    env.pupper.bl_command.horizontal_velocity = action4[0:2]
-    env.pupper.command = [env.pupper.fr_command, env.pupper.fl_command, env.pupper.br_command, env.pupper.bl_command]
     env.pupper.ResetPose()
     """joint_states = pybullet.getJointStates(env.pupper.body_id, env.pupper.joint_indices)
     joint_pos = np.zeros(12)
@@ -52,7 +47,12 @@ def main():
     print(joint_motor_torque)"""
     # Step the controller forward by dt
     # env.step(action)
-    pybullet.setJointMotorControlArray(
+    # file_root = pybullet_data.getDataPath()
+    # pupper_ground = pybullet.loadURDF(file_root + "/ground_test.urdf")
+    # print("pupper_ground:")
+    # print(pupper_ground)
+    # pybullet.resetBasePositionAndOrientation(pupper_ground, [9.4, 0, -0.2], [1, 1, 1, 1])
+    """pybullet.setJointMotorControlArray(
         bodyUniqueId=env.pupper.body_id,
         jointIndices=env.pupper.joint_indices,
         controlMode=pybullet.POSITION_CONTROL,
@@ -60,7 +60,7 @@ def main():
         positionGains=[env.pupper.motor_kp] * 12,
         velocityGains=[env.pupper.motor_kv] * 12,
         forces=[env.pupper.motor_max_torque] * 12,
-    )
+    )"""
     for _ in range(30):
         env.pupper.ResetPose()
     while True:
@@ -71,7 +71,7 @@ def main():
             # pybullet.resetBasePositionAndOrientation(env.pupper.body_id, [2, 1, 2], env.pupper.initial_orientation)
 
             # Step the controller forward by dt
-            env.step(action)
+            # env.step(action)
             # env.pupper.TG.run(state=env.pupper.state, command=env.pupper.command)
             # env.pupper.foot_position2motor_angle(env.pupper.state.final_foot_locations)
 
