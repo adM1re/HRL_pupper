@@ -68,11 +68,11 @@ def main():
     normalizer = Normalizer(state_dim)
     policy = Policy(state_dim, action_dim)
     low_policy_agent = Agent(env, policy, low_policy, normalizer)
-    agent_num = 0
-    if os.path.exists(model_path + "/" + model_file_name + str(agent_num) + "seed" + str(seed) + ".npy"):
+    agent_num = args.agent
+    if os.path.exists(model_path + "/" + str(seed) + "/" + model_file_name + "agent" + str(agent_num) + ".npy"):
         print("Loading Existing agent:")
-        print(model_path + "/" + model_file_name + str(agent_num) + "seed" + str(seed) + ".npy")
-        low_policy_agent.np_load(model_path + "/" + model_file_name + str(agent_num) + "seed" + str(seed) + ".npy")
+        print(model_path + "/" + str(seed) + "/" + model_file_name + "agent" + str(agent_num) + ".npy")
+        low_policy_agent.np_load(model_path + "/" + str(seed) + "/" + model_file_name + "agent" + str(agent_num) + ".npy")
         print("Starting policy theta=", low_policy_agent.policy.theta)
     else:
         print("Start New Training")
@@ -83,6 +83,7 @@ def main():
     try:
         result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed) + ".npy")
     except Exception as e:
+        er = 1
         print("No trained result")
     while t < (int(max_time_steps)):
         episode_reward, episode_time_steps = explore(env=env, policy=policy, normalizer=normalizer, direction=None,
@@ -98,7 +99,7 @@ def main():
             )
         )
         if episode_num == 0:
-            if agent_num == 0:
+            if agent_num == 0 or er == 1:
                 result = np.array(
                     [[episode_reward, episode_reward / float(episode_time_steps)]]
                 )

@@ -43,7 +43,7 @@ class LowPolicy(object):
         self.nb_directions = 16
         self.nb_best_directions = 16
         assert self.nb_best_directions <= self.nb_directions
-        self.noise = 0.02
+        self.noise = 0.1
         # self.env = None
         self.env_name = "pupper_low_policy"
 

@@ -64,11 +64,11 @@ def main():
     env.reset()
     episode_reward = 0
     episode_time_steps = 0
-    episode_num = args.agent
+    episode_num = 0
     normalizer = Normalizer(state_dim)
     policy = Policy(state_dim, action_dim)
     low_policy_agent = Agent(env, policy, low_policy, normalizer)
-    agent_num = 0
+    agent_num = args.agent
     if os.path.exists(model_path + "/" + str(seed) + "/" + model_file_name + "agent" + str(agent_num) + ".npy"):
         print("Loading Existing agent:")
         print(model_path + "/" + str(seed) + "/" + model_file_name + "agent" + str(agent_num) + ".npy")
@@ -94,6 +94,11 @@ def main():
                        )
         p.start()
         processes.append(p)
+    try:
+        result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed) + ".npy")
+    except Exception as e:
+        er = 1
+        print("No trained result")
     print("Started Pupper Training Env")
     t = 0
     while t < (int(max_time_steps)):
@@ -113,7 +118,7 @@ def main():
             )
         )
         if episode_num == 0:
-            if agent_num == 0:
+            if agent_num == 0 or er == 1:
                 result = np.array(
                     [[episode_reward, episode_reward / float(episode_time_steps)]]
                 )

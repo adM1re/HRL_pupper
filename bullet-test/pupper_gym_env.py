@@ -202,11 +202,13 @@ class pupperGymEnv(gym.Env):
         forward_reward = pos[0]
         # penalty for nonzero roll, pitch
         rp_reward = -(abs(roll) + abs(pitch))
+        yaw_reward = -(abs(yaw))
         drift_reward = -abs(pos[1])
         reward = (
                 self.drift_weight * drift_reward +
                 self.forward_weight * forward_reward +
-                self.rp_weight * rp_reward
+                self.rp_weight * rp_reward +
+                self.rp_weight * yaw_reward
         )
         if done:
             reward += 1000

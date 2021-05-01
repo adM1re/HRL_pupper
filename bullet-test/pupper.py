@@ -297,10 +297,18 @@ class Pupper(object):
         )
 
     def action_limit(self, action):
-        action[0] = np.clip(action[0], 0, self.x_length)
-        action[1] = np.clip(action[1], 0, self.x_length)
-        action[2] = np.clip(action[2], 0, self.x_length)
-        action[3] = np.clip(action[3], 0, self.x_length)
+        action[0] = np.clip(action[0], -self.x_length, self.x_length)
+        action[1] = np.clip(action[1], -self.x_length, self.x_length)
+        action[2] = np.clip(action[2], -self.x_length, self.x_length)
+        action[3] = np.clip(action[3], -self.x_length, self.x_length)
+        for i in range(3):
+            if abs(action[i]) < 0.001:
+                action[i] = action[i] * 1000
+            elif abs(action[i]) < 0.01:
+                action[i] = action[i] * 100
+            elif abs(action[i]) < 0.1:
+                action[i] = action[i] * 10
+        # print(action[0])
         """action[4] = np.clip(action[4], -self.x_length, self.x_length)
         action[5] = np.clip(action[5], self.h_length, -0.1)
         action[6] = np.clip(action[6], -self.x_length, self.x_length)
