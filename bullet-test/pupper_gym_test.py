@@ -22,7 +22,7 @@ INIT_MOTOR_ANGLE2 = [0.2, -2, 2,
                      -0.2, 2, -2]
 
 def main():
-    env = pupper_gym_env.pupperGymEnv(render=False, task=2, height_field=1, hard_reset=False)
+    env = pupper_gym_env.pupperGymEnv(render=True, task=2, height_field=1, hard_reset=False)
     print(env.reset())
     action = [0.4, 0.7,
               0.4, -0.2,
@@ -75,8 +75,8 @@ def main():
             # env.pupper.TG.run(state=env.pupper.state, command=env.pupper.command)
             # env.pupper.foot_position2motor_angle(env.pupper.state.final_foot_locations)
 
-            # obs = env.pupper.GetObservation()
-            # print(obs[0:3])
+            obs = env.pupper.GetObservation()
+            print(obs)
 
             pybullet.stepSimulation()
             last_loop = now

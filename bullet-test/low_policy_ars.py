@@ -98,7 +98,7 @@ def main():
         p.start()
         processes.append(p)
     try:
-        result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed) + ".npy")
+        result = np.load(result_path + "/" + str(result_file_name) + str(task_no) + "seed" + str(seed) + ".npy")
         er = 0
     except Exception as e:
         er = 1
@@ -127,7 +127,7 @@ def main():
                     [[episode_reward, episode_reward / float(episode_time_steps)]]
                 )
             else:
-                result = np.load(result_path + "/" + str(result_file_name) + "seed" + str(seed) + ".npy")
+                result = np.load(result_path + "/" + str(result_file_name) + str(task_no) + "seed" + str(seed) + ".npy")
                 new_result = np.array(
                     [[episode_reward, episode_reward / float(episode_time_steps)]]
                 )
@@ -138,7 +138,7 @@ def main():
             )
             result = np.concatenate((result, new_result))
         # Save training result
-        np.save(result_path + "/" + str(result_file_name) + "seed" + str(seed) + ".npy", result)
+        np.save(result_path + "/" + str(result_file_name) + str(task_no) + "seed" + str(seed) + ".npy", result)
         # Save training model
         episode_num += 1
         agent_num += 1

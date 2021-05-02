@@ -90,8 +90,8 @@ class Pupper(object):
     def HeightField(self, hf, hf_no):
         if hf:
             if hf_no == 1:
+                print(self.file_root)
                 self._height_field_id = self.pb.loadURDF(self.file_root + "/ground_test.urdf")
-                print("load steep")
                 pybullet.resetBasePositionAndOrientation(self._height_field_id, [8.5, 0, -0.2], [1, 1, 1, 1])
             elif hf_no == 2:
                 self._height_field_id = self.pb.loadURDF(self.file_root + "ground_test2.urdf")
@@ -208,10 +208,10 @@ class Pupper(object):
         upper_bound[1] = self.x_length
         upper_bound[2] = self.x_length
         upper_bound[3] = self.x_length
-        """upper_bound[4] = self.x_length
-        upper_bound[5] = -0.1
-        upper_bound[6] = self.x_length
-        upper_bound[7] = -0.1"""
+        # upper_bound[4] = -0.1
+        # upper_bound[5] = -0.1
+        # upper_bound[6] = -0.1
+        # upper_bound[7] = -0.1
 
         """upper_bound[3] = self.x_length
         upper_bound[4] = self.y_length
@@ -230,10 +230,10 @@ class Pupper(object):
         low_bound[1] = 0.1  # -self.x_length
         low_bound[2] = 0.1  # -self.x_length
         low_bound[3] = 0.1  # -self.x_length
-        """low_bound[4] = -self.x_length
-        low_bound[5] = self.h_length
-        low_bound[6] = -self.x_length
-        low_bound[7] = self.h_length"""
+        # low_bound[4] = self.h_length
+        # low_bound[5] = self.h_length
+        # low_bound[6] = self.h_length
+        # low_bound[7] = self.h_length
         """low_bound[4] = -self.y_length
         low_bound[5] = self.h_length
         low_bound[6] = -self.x_length
@@ -251,28 +251,24 @@ class Pupper(object):
         bl_command = command(self._TG_config.default_z_ref)
         br_command = command(self._TG_config.default_z_ref)
         action.append(fr_command.horizontal_velocity[0])
-        # action.append(fr_command.horizontal_velocity[1])
-        # action.append(fr_command.height)
         action.append(fl_command.horizontal_velocity[0])
-        # action.append(fl_command.horizontal_velocity[1])
-        # action.append(fl_command.height)
         action.append(br_command.horizontal_velocity[0])
-        # action.append(br_command.horizontal_velocity[1])
-        # action.append(br_command.height)
         action.append(bl_command.horizontal_velocity[0])
-        # action.append(bl_command.horizontal_velocity[1])
+        # action.append(fr_command.height)
+        # action.append(fl_command.height)
+        # action.append(br_command.height)
         # action.append(bl_command.height)
         return len(action)
 
     def transformAction2Command(self, action):
         self.fr_command.horizontal_velocity[0] = action[0]
-        self.fr_command.height = -0.15  # action[1]
         self.fl_command.horizontal_velocity[0] = action[1]
-        self.fl_command.height = -0.15  # action[1]
         self.br_command.horizontal_velocity[0] = action[2]
-        self.br_command.height = -0.15  # action[1]
         self.bl_command.horizontal_velocity[0] = action[3]
-        self.bl_command.height = -0.15  # action[1]
+        self.fr_command.height = -0.15  # action[4]
+        self.fl_command.height = -0.15  # action[5]
+        self.br_command.height = -0.15  # action[6]
+        self.bl_command.height = -0.15  # action[7]
         return [self.fr_command,
                 self.fl_command,
                 self.br_command,
@@ -300,17 +296,17 @@ class Pupper(object):
         )
 
     def action_limit(self, action):
-        action[0] = np.clip(action[0], -self.x_length, self.x_length)
-        action[1] = np.clip(action[1], -self.x_length, self.x_length)
-        action[2] = np.clip(action[2], -self.x_length, self.x_length)
-        action[3] = np.clip(action[3], -self.x_length, self.x_length)
-        for i in range(3):
+        # action[0] = np.clip(action[0], -self.x_length, self.x_length)
+        for i in range(4):
+            action[i] = np.clip(action[i], -self.x_length, self.x_length)
             if abs(action[i]) < 0.001:
                 action[i] = action[i] * 1000
             elif abs(action[i]) < 0.01:
                 action[i] = action[i] * 100
             elif abs(action[i]) < 0.1:
                 action[i] = action[i] * 10
+        # for k in range(4):
+        #     action[k+4] = np.clip(action[k+4], -0.2, -0.1)
         # print(action[0])
         """action[4] = np.clip(action[4], -self.x_length, self.x_length)
         action[5] = np.clip(action[5], self.h_length, -0.1)

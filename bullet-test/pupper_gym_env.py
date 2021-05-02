@@ -33,7 +33,7 @@ class pupperGymEnv(gym.Env):
                  file_root=pybullet_data.getDataPath(),
                  num_steps_to_log=1000,
                  log_path=None,
-                 forward_weight=5.0,
+                 forward_weight=10.0,
                  rp_wight=2.0,
                  drift_weight=1.0,
                  num_step_to_log=10,
@@ -64,8 +64,8 @@ class pupperGymEnv(gym.Env):
         self.task1_total_reward = 0
         self.task2_total_reward = 0
         self.task3_total_reward = 0
-        self.task1_target_rpy = [0, 0, -90]
-        self.task2_target_rpy = [0, 4, -90]
+        self.task1_target_rpy = [0, 0, 0]
+        self.task2_target_rpy = [0, -0.1, 0]
         self._is_render = render
         self.hard_reset = True
         self.time_step = 1/240  # time_step
@@ -189,7 +189,7 @@ class pupperGymEnv(gym.Env):
     def _termination(self):
         position = self.pupper.GetBasePosition()
         distance = math.sqrt(position[0] ** 2 + position[1] ** 2)
-        return self.is_fallen() or distance > self.distance_limit or self.is_reached_goal()
+        return self.is_fallen() or abs(position[1])>1.5 or distance > self.distance_limit or self.is_reached_goal()
 
     def task1_reward(self):
         """task1 for low policy training
@@ -203,9 +203,9 @@ class pupperGymEnv(gym.Env):
 
         forward_reward = pos[0]
         # penalty for nonzero roll, pitch
-        rpy_reward = -(abs(self.task1_target_rpy[0] - roll) +
-                       abs(self.task1_target_rpy[1] - pitch) +
-                       abs(self.task1_target_rpy[2] - yaw))
+        rpy_reward = -(abs(roll - self.task1_target_rpy[0]) +
+                       abs(pitch - self.task1_target_rpy[1]) +
+                       abs(yaw - self.task1_target_rpy[2]))
         drift_reward = -abs(pos[1])
         reward = (
                 self.drift_weight * drift_reward +
