@@ -22,7 +22,7 @@ INIT_MOTOR_ANGLE2 = [0.2, -2, 2,
                      -0.2, 2, -2]
 
 def main():
-    env = pupper_gym_env.pupperGymEnv(render=True, task=2, height_field=1, hard_reset=False)
+    env = pupper_gym_env.pupperGymEnv(render=True, task=4, height_field=1, hard_reset=False)
     print(env.reset())
     action = [0.4, 0.7,
               0.4, -0.2,
@@ -48,10 +48,11 @@ def main():
     # Step the controller forward by dt
     # env.step(action)
     # file_root = pybullet_data.getDataPath()
-    # pupper_ground = pybullet.loadURDF(file_root + "/ground_test.urdf")
+    # pupper_ground = pybullet.loadURDF(file_root + "/2dpath_tracking.urdf")
     # print("pupper_ground:")
     # print(pupper_ground)
-    # pybullet.resetBasePositionAndOrientation(pupper_ground, [9.4, 0, -0.2], [1, 1, 1, 1])
+    # pybullet.resetBasePositionAndOrientation(pupper_ground, [1, 0.5, 0.1], [1, 1, -1, -1])
+
     """pybullet.setJointMotorControlArray(
         bodyUniqueId=env.pupper.body_id,
         jointIndices=env.pupper.joint_indices,
@@ -62,21 +63,25 @@ def main():
         forces=[env.pupper.motor_max_torque] * 12,
     )"""
     for _ in range(30):
-        env.pupper.ResetPose()
+        # env.pupper.ResetPose()
+        pybullet.resetBasePositionAndOrientation(env.pupper.body_id, [0, 0, 0.35], [0, 0, 0, 1])
+
+    action = [0.7, 0.4]
     while True:
         now = time.time()
+
         if now - last_loop >= 0.01:
             # Check if we should transition to "deactivated"
             # env.pupper.ResetPose()
             # pybullet.resetBasePositionAndOrientation(env.pupper.body_id, [2, 1, 2], env.pupper.initial_orientation)
 
             # Step the controller forward by dt
-            # env.step(action)
+            env.step(action)
             # env.pupper.TG.run(state=env.pupper.state, command=env.pupper.command)
             # env.pupper.foot_position2motor_angle(env.pupper.state.final_foot_locations)
-
-            obs = env.pupper.GetObservation()
-            print(obs)
+            # pos = env.pupper.GetBasePosition()
+            # obs = env.pupper.GetObservation()
+            # print(pos)
 
             pybullet.stepSimulation()
             last_loop = now

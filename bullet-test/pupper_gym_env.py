@@ -39,6 +39,7 @@ class pupperGymEnv(gym.Env):
                  num_step_to_log=10,
                  motor_kp=0.25,
                  motor_kv=0.5,
+                 target_position=[20, 0, 0],
                  motor_max_torque=10,
                  hard_reset=False,
                  time_step=0.01,
@@ -59,13 +60,13 @@ class pupperGymEnv(gym.Env):
         self.rp_weight = rp_wight
         self.drift_weight = drift_weight
         self.distance_limit = distance_limit
-        self.target_position = [20, 0, 0]
+        self.target_position = target_position
         self.target_yaw = np.pi/4
-        self.task1_total_reward = 0
-        self.task2_total_reward = 0
-        self.task3_total_reward = 0
+        self.task_total_reward = 0
+        self.task4_total_reward = 0
         self.task1_target_rpy = [0, 0, 0]
         self.task2_target_rpy = [0, -0.1, 0]
+        self.task3_target_rpy = [0, 0, np.pi / 3]
         self._is_render = render
         self.hard_reset = True
         self.time_step = 1/240  # time_step
@@ -94,6 +95,15 @@ class pupperGymEnv(gym.Env):
         self.reset()
         self.height_field = height_field
         self.height_field_No = height_field_no
+        if self.task == 2:
+            self.height_field = 1
+            self.height_field_No = 1
+        elif self.task == 1 or self.task == 3:
+            self.height_field = 0
+        elif self.task == 4:
+            self.pupper.initial_position = [0, 0, 0.34]
+            self.height_field = 1
+            self.height_field_No = 2
         self.pupper.HeightField(self.height_field, self.height_field_No)
         # observation and action spaces
         observation_high = self.pupper.GetObservationUpperBound()
@@ -134,8 +144,8 @@ class pupperGymEnv(gym.Env):
 
         self._last_base_position = [0, 0, 0]
         self._last_base_orientation = [0, 0, 0, 1]
-        self.task1_total_reward = 0
-        self.task2_total_reward = 0
+        self.task_total_reward = 0
+        self.task4_total_reward = 0
         self.pb.stepSimulation()
         self.reset_cam([0, 0, 0])
         if self._is_render:
@@ -158,9 +168,11 @@ class pupperGymEnv(gym.Env):
         elif self.task == 2:
             reward = self.task2_reward()
         elif self.task == 3:
-            task3_reward = self.task3_reward()
-            self.task3_total_reward += task3_reward
-            reward = self.task3_total_reward
+            self.task3_target_rpy = [0, 0, np.pi / 3]
+            reward = self.task3_reward()
+        elif self.task == 4:
+            reward = self.task4_reward()
+            # reward = self.task4_total_reward
         else:
             reward = -1000
             print("Plz set task!")
@@ -189,7 +201,12 @@ class pupperGymEnv(gym.Env):
     def _termination(self):
         position = self.pupper.GetBasePosition()
         distance = math.sqrt(position[0] ** 2 + position[1] ** 2)
-        return self.is_fallen() or abs(position[1])>1.5 or distance > self.distance_limit or self.is_reached_goal()
+        if self.task == 1 or self.task == 3:
+            return self.is_fallen() or distance > self.distance_limit
+        elif self.task == 2:
+            return self.is_fallen() or abs(position[1]) > 1.5 or distance > self.distance_limit or self.is_reached_goal()
+        else:
+            return self.is_fallen() or distance > self.distance_limit or self.is_reached_goal()
 
     def task1_reward(self):
         """task1 for low policy training
@@ -242,20 +259,46 @@ class pupperGymEnv(gym.Env):
         return reward
 
     def task3_reward(self):
-        obs = self.pupper.GetObservation()
-        current_pos = obs[0:3]
-        target_pos = self.target_position
+        """
+         this task is used for training pupper walking towards target yaw
+        :return:
+        """
+        pos, orn = self.pupper.Get_Base_PositionAndOrientation()
+        roll, pitch, yaw = self.pb.getEulerFromQuaternion([orn[0], orn[1], orn[2], orn[3]])
+        rpy_reward = -(abs(self.task3_target_rpy[0] - roll) +
+                       abs(self.task3_target_rpy[1] - pitch) +
+                       abs(self.task3_target_rpy[2] - yaw)
+                       )
+        target_yaw = self.task3_target_rpy[2]
+        distance = pos[0]/(math.cos(target_yaw))
+        drift_reward = -abs(pos[1] - abs(distance * math.sin(target_yaw)))
+        reward = (self.forward_weight * distance +
+                  self.drift_weight * drift_reward +
+                  self.rp_weight * rpy_reward)
+        self._last_base_position = pos
+        return reward
+
+    def task4_reward(self):
+        """
+        this task aims 2d path tracking
+        :return:
+        """
+        pos, orn = self.pupper.Get_Base_PositionAndOrientation()
+        done = self.is_reached_goal()
         last_pos = self._last_base_position
-        reward_current = math.sqrt(
-            (current_pos[0] - target_pos[0]) ** 2 +
-            (current_pos[1] - target_pos[1]) ** 2
+        roll, pitch, yaw = self.pb.getEulerFromQuaternion([orn[0], orn[1], orn[2], orn[3]])
+        rpy_reward = -(abs(self.task1_target_rpy[0] - roll) +
+                       abs(self.task1_target_rpy[1] - pitch))
+        distance_along = math.sqrt((pos[0] - last_pos[0]) ** 2 +
+                                   (pos[1] - last_pos[1]) ** 2)
+        self.task4_total_reward += distance_along
+        reward = (
+                self.forward_weight * distance_along +  # self.task4_total_reward +
+                self.rp_weight * rpy_reward
         )
-        reward_last = math.sqrt(
-            (last_pos[0] - target_pos[0]) ** 2 +
-            (last_pos[1] - target_pos[1]) ** 2
-        )
-        self._last_base_position = current_pos
-        reward = reward_last - reward_current
+        self._last_base_position = pos
+        if done:
+            reward += 2000
         return reward
 
     @property

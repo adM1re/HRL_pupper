@@ -2,7 +2,7 @@ import pybullet as p
 import time
 import pybullet_data
 import numpy as np
-
+import math
 useDeepLocoCSV = 2
 useAdmireCSV = 3
 heightfieldSource = 0
@@ -15,7 +15,7 @@ p.setGravity(0, 0, -9.8)
 numHeightfieldRows = 16
 numHeightfieldColumns = 16
 show_pupper = 1
-show_ground = 1
+show_ground = 0
 if heightfieldSource == useDeepLocoCSV:
   terrainShape = p.createCollisionShape(shapeType=p.GEOM_HEIGHTFIELD,
                                         meshScale=[.5, .5, 2.5],
@@ -76,6 +76,15 @@ for num in range(-1, num_joints):
     inertia = p.getDynamicsInfo(bodyids, num)[0]
     # print(inertia)
 # p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
+"""dt = np.dtype([('yaw', 'f8'), ('duration', 'u8')])
+action = np.array([(0.5, 1)], dtype=dt)
+action[0] = (np.pi, 5)
+print(action)
+upper_bound = np.array([0.0] * 12)
+print(upper_bound)"""
+a = 10/(math.sin(math.pi/6))
+print(math.asin(0.5))
+print(a)
 while (p.isConnected()):
     p.stepSimulation()
     # now_position, now_orientation = p.getBasePositionAndOrientation(bodyids)

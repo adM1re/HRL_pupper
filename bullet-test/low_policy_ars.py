@@ -27,7 +27,7 @@ def main():
     describe = "Pupper ARS Agent Policy "
     # aim to training pupper walking
     parse = argparse.ArgumentParser(description=describe)
-    parse.add_argument("-t", "--task", type=int, default=2, help="Task Number")
+    parse.add_argument("-t", "--task", type=int, default=4, help="Task Number")
     parse.add_argument("-s", "--seed", help="Random Seed", type=int, default=0)
     parse.add_argument("-r", "--render", help="Is Rendering", type=bool, default=0)
     parse.add_argument("-m", "--mp", help="Enable Multiprocessing", type=bool, default=0)
@@ -41,7 +41,7 @@ def main():
     eval_freq = 1
     save_model = True
     task_no = args.task
-    if task_no != 1:
+    if task_no != 0:
         model_path = "model" + str(task_no)
         result_path = "result" + str(task_no)
     if not os.path.exists(result_path):
@@ -51,7 +51,7 @@ def main():
 
     env = pupperGymEnv(render=False,
                        task=task_no,
-                       height_field=1)
+                       height_field=0)
     env.seed(seed)
     np.random.seed(seed)
     state_dim = env.observation_space.shape[0]

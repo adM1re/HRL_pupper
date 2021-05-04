@@ -15,10 +15,7 @@ from ars_lib.ars import *
 _RESET = 1
 _CLOSE = 2
 _EXPLORE = 3
-result_file_name = "low_policy_evaluate_result"
-result_path = "result"
-model_path = "model"
-model_file_name = "low_policy_trained"
+
 
 
 def main():
@@ -27,7 +24,7 @@ def main():
     describe = "Pupper ARS Agent Policy "
     # aim to training pupper walking
     parse = argparse.ArgumentParser(description=describe)
-    parse.add_argument("-t", "--task", type=int, default=1, help="Task Number")
+    parse.add_argument("-t", "--task", type=int, default=4, help="Task Number")
     parse.add_argument("-s", "--seed", help="Random Seed", type=int, default=0)
     parse.add_argument("-r", "--render", help="Is Rendering", type=bool, default=0)
     parse.add_argument("-m", "--mp", help="Enable Multiprocessing", type=bool, default=0)
@@ -37,6 +34,10 @@ def main():
     seed = 13
     seed = args.seed
     print("Seed:{}".format(seed))
+    result_file_name = "low_policy_evaluate_result"
+    result_path = "result"
+    model_path = "model"
+    model_file_name = "low_policy_trained"
     max_time_steps = 4e6
     eval_freq = 1
     save_model = True
@@ -68,7 +69,7 @@ def main():
     env.reset()
     episode_reward = 0
     episode_time_steps = 0
-    episode_num = args.agent
+    episode_num = 0
     normalizer = Normalizer(state_dim)
     policy = Policy(state_dim, action_dim)
     low_policy_agent = Agent(env, policy, low_policy, normalizer)
