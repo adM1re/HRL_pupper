@@ -39,7 +39,7 @@ class pupperGymEnv(gym.Env):
                  num_step_to_log=10,
                  motor_kp=0.25,
                  motor_kv=0.5,
-                 target_position=[20, 0, 0],
+                 target_position=[3.0, 3.2, 0.3],
                  motor_max_torque=10,
                  hard_reset=False,
                  time_step=0.01,

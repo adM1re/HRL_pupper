@@ -95,7 +95,7 @@ class Pupper(object):
                 pybullet.resetBasePositionAndOrientation(self._height_field_id, [8.5, 0, -0.2], [1, 1, 1, 1])
             elif hf_no == 2:
                 self._height_field_id = self.pb.loadURDF(self.file_root + "/2dpath_tracking.urdf")
-                pybullet.resetBasePositionAndOrientation(self._height_field_id, [1, 0.5, 0.1], [1, 1, -1, -1])
+                pybullet.resetBasePositionAndOrientation(self._height_field_id, [0.7, 0.3, 0.1], [1, 1, -1, -1])
 
     def ResetPose(self):
         self.pb.resetBasePositionAndOrientation(self.body_id, self.initial_position, self.initial_orientation)
@@ -190,62 +190,25 @@ class Pupper(object):
         observation = []
         pos, orn = self.Get_Base_PositionAndOrientation()
         roll, pitch, yaw = self.pb.getEulerFromQuaternion([orn[0], orn[1], orn[2], orn[3]])
-        observation.append(pos[0])
-        observation.append(pos[1])
-        observation.append(pos[2])
-        # observation.append(roll)
-        # observation.append(pitch)
-        # observation.append(yaw)
-        """joint_states = pybullet.getJointStates(self.body_id, self.joint_indices)
-        # joint_pos = np.zeros(12)
-        # joint_v = np.zeros(12)
-        # joint_motor_torque = np.zeros(12)
-        for i in range(12):
-            observation.append(joint_states[i][0])
-            # joint_v[i] = joint_states[i][1]
-            # joint_motor_torque[i] = joint_states[i][3]"""
+        observation.append(roll)
+        observation.append(pitch)
+        observation.append(yaw)
         return observation
 
     def GetActionUpperBound(self):
         upper_bound = np.array([0.0] * self.GetActionDimension())
         upper_bound[0] = self.x_length
-        # upper_bound[1] = self.x_length
-        # upper_bound[2] = self.x_length
-        # upper_bound[3] = self.x_length
-        # upper_bound[4] = -0.1
-        # upper_bound[5] = -0.1
-        # upper_bound[6] = -0.1
-        # upper_bound[7] = -0.1
-
-        """upper_bound[3] = self.x_length
-        upper_bound[4] = self.y_length
-        upper_bound[5] = -0.1
-        upper_bound[6] = self.x_length
-        upper_bound[7] = self.y_length
-        upper_bound[8] = -0.1
-        upper_bound[9] = self.x_length
-        upper_bound[10] = self.y_length
-        upper_bound[11] = -0.1"""
+        upper_bound[1] = self.x_length
+        upper_bound[2] = self.x_length
+        upper_bound[3] = self.x_length
         return upper_bound
 
     def GetActionLowerBound(self):
         low_bound = np.array([0.0] * self.GetActionDimension())
-        low_bound[0] = 0.1  # -self.x_length
-        low_bound[1] = 0.1  # -self.x_length
-        # low_bound[2] = 0.1  # -self.x_length
-        # low_bound[3] = 0.1  # -self.x_length
-        # low_bound[4] = self.h_length
-        # low_bound[5] = self.h_length
-        # low_bound[6] = self.h_length
-        # low_bound[7] = self.h_length
-        """low_bound[4] = -self.y_length
-        low_bound[5] = self.h_length
-        low_bound[6] = -self.x_length
-        low_bound[7] = -self.y_length
-        low_bound[8] = self.h_length
-        low_bound[9] = -self.x_length
-        low_bound[10] = -self.y_length
-        low_bound[11] = self.h_length"""
+        low_bound[0] = 0.1
+        low_bound[1] = 0.1
+        low_bound[2] = 0.1
+        low_bound[3] = 0.1
         return low_bound
 
     def GetActionDimension(self):
@@ -256,23 +219,19 @@ class Pupper(object):
         br_command = command(self._TG_config.default_z_ref)
         action.append(fr_command.horizontal_velocity[0])
         action.append(fl_command.horizontal_velocity[0])
-        # action.append(br_command.horizontal_velocity[0])
-        # action.append(bl_command.horizontal_velocity[0])
-        # action.append(fr_command.height)
-        # action.append(fl_command.height)
-        # action.append(br_command.height)
-        # action.append(bl_command.height)
+        action.append(br_command.horizontal_velocity[0])
+        action.append(bl_command.horizontal_velocity[0])
         return len(action)
 
     def transformAction2Command(self, action):
-        self.fr_command.horizontal_velocity[0] = 0.3 + action[0]
-        self.fl_command.horizontal_velocity[0] = 0.3 - action[0]
-        self.br_command.horizontal_velocity[0] = 0.3 + action[0]
-        self.bl_command.horizontal_velocity[0] = 0.3 - action[0]
-        self.fr_command.height = -0.15  # action[4]
-        self.fl_command.height = -0.15  # action[5]
-        self.br_command.height = -0.15  # action[6]
-        self.bl_command.height = -0.15  # action[7]
+        self.fr_command.horizontal_velocity[0] = action[0]
+        self.fl_command.horizontal_velocity[0] = action[1]
+        self.br_command.horizontal_velocity[0] = action[2]
+        self.bl_command.horizontal_velocity[0] = action[3]
+        self.fr_command.height = -0.15
+        self.fl_command.height = -0.15
+        self.br_command.height = -0.15
+        self.bl_command.height = -0.15
         return [self.fr_command,
                 self.fl_command,
                 self.br_command,
@@ -301,7 +260,7 @@ class Pupper(object):
 
     def action_limit(self, action):
         # action[0] = np.clip(action[0], -self.x_length, self.x_length)
-        for i in range(2):
+        for i in range(len(action)):
             action[i] = np.clip(action[i], -self.x_length, self.x_length)
             if abs(action[i]) < 0.001:
                 action[i] = action[i] * 100
@@ -309,23 +268,6 @@ class Pupper(object):
                 action[i] = action[i] * 10
             elif abs(action[i]) < 0.1:
                 action[i] = action[i] * 1
-        # for k in range(4):
-        #     action[k+4] = np.clip(action[k+4], -0.2, -0.1)
-        # print(action[0])
-        """action[4] = np.clip(action[4], -self.x_length, self.x_length)
-        action[5] = np.clip(action[5], self.h_length, -0.1)
-        action[6] = np.clip(action[6], -self.x_length, self.x_length)
-        action[7] = np.clip(action[7], self.h_length, -0.1)"""
-
-        """action[3] = np.clip(action[3], -self.x_length, self.x_length)
-        action[4] = 0  # np.clip(action[4], self.y_length, -self.y_length)
-        action[5] = np.clip(action[5], self.h_length, -0.1)
-        action[6] = np.clip(action[6], -self.x_length, self.x_length)
-        action[7] = 0  # np.clip(action[7], self.y_length, -self.y_length)
-        action[8] = np.clip(action[8], self.h_length, -0.1)
-        action[9] = np.clip(action[9], -self.x_length, self.x_length)
-        action[10] = 0  # np.clip(action[10], self.y_length, -self.y_length)
-        action[11] = np.clip(action[11], self.h_length, -0.1)"""
         return action
 
     def ApplyAction(self, action):

@@ -27,7 +27,7 @@ class HighPolicy(object):
         self.episode_length = 2000
         self.learning_rate = 0.02
         self.nb_directions = 16
-        self.nb_best_directions = 4
+        self.nb_best_directions = 8
         assert self.nb_best_directions <= self.nb_directions
         self.noise = 0.03
         self.seed = 1
@@ -41,7 +41,7 @@ class LowPolicy(object):
         self.episode_length = 2500
         self.learning_rate = 0.05
         self.nb_directions = 16
-        self.nb_best_directions = 16
+        self.nb_best_directions = 8
         assert self.nb_best_directions <= self.nb_directions
         self.noise = 0.06
         # self.env = None

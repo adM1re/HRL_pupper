@@ -62,19 +62,26 @@ def main():
         velocityGains=[env.pupper.motor_kv] * 12,
         forces=[env.pupper.motor_max_torque] * 12,
     )"""
-    for _ in range(30):
+    done = 0
+    for _ in range(40):
         # env.pupper.ResetPose()
         pybullet.resetBasePositionAndOrientation(env.pupper.body_id, [0, 0, 0.35], [0, 0, 0, 1])
-
-    action = [0.7, 0.4]
+    pos = env.pupper.GetBasePosition()
+    action = [0.2, 0.3]
     while True:
         now = time.time()
-
+        if pos[1] > 2.7 and pos[0] > 2.0:
+            action[0] = - 0.14
+        elif pos[1] > 0.7 and pos[0] > 1.1:
+            action[0] = 0
+        if done:
+            env.reset()
+            action = [0.16, 0.3]
         if now - last_loop >= 0.01:
             # Check if we should transition to "deactivated"
             # env.pupper.ResetPose()
             # pybullet.resetBasePositionAndOrientation(env.pupper.body_id, [2, 1, 2], env.pupper.initial_orientation)
-
+            # pybullet.resetBasePositionAndOrientation(env.pupper.body_id, [0, 0, 0.2], [0, 0, 0, 1])
             # Step the controller forward by dt
             env.step(action)
             # env.pupper.TG.run(state=env.pupper.state, command=env.pupper.command)
@@ -82,7 +89,8 @@ def main():
             # pos = env.pupper.GetBasePosition()
             # obs = env.pupper.GetObservation()
             # print(pos)
-
+            pos = env.pupper.GetBasePosition()
+            done = env.is_reached_goal() or env.is_fallen()
             pybullet.stepSimulation()
             last_loop = now
 
